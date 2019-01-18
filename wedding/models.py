@@ -1,0 +1,150 @@
+import datetime
+import enum
+import jwt
+from flask_sqlalchemy import SQLAlchemy
+from flask_bcrypt import Bcrypt
+from .config import key
+
+db = SQLAlchemy()
+flask_bcrypt = Bcrypt()
+
+
+class ResponseType(enum.Enum):
+    NO_RESPONSE = 0
+    CONFIRMED = 1
+    DECLINED = 2
+
+    def __str__(self):
+        return self.name
+
+
+class InvitationType(enum.Enum):
+    HOUSE = 0
+    WEEKEND = 1
+    DAY = 2
+
+    def __str__(self):
+        return self.name
+
+
+class User(db.Model):
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    email = db.Column(db.String(255), unique=True, nullable=False)
+    firstname = db.Column(db.String(255), nullable=False)
+    lastname = db.Column(db.String(255), nullable=False)
+    registered_on = db.Column(db.DateTime, nullable=False)
+    admin = db.Column(db.Boolean, nullable=False, default=False)
+    password_hash = db.Column(db.String(100))
+    invitation_group_id = db.Column(db.Integer, db.ForeignKey("invitation_group.id"))
+
+    def __repr__(self):
+        return ("<{} name={} email{}>").format(
+            self.__class__.__name__, self.fullname, self.email
+        )
+
+    @property
+    def password(self):
+        raise AttributeError("password is write-only")
+
+    @password.setter
+    def password(self, password):
+        self.password_hash = flask_bcrypt.generate_password_hash(password).decode(
+            "utf-8"
+        )
+
+    def check_password(self, password):
+        return flask_bcrypt.check_password_hash(self.password_hash, password)
+
+    @property
+    def invitation(self):
+        return self.invitation_group.invitation
+
+    @property
+    def fullname(self):
+        return self.firstname + " " + self.lastname
+
+    def generate_jwt(self):
+        try:
+            now = datetime.datetime.utcnow()
+            payload = {
+                "exp": now + (datetime.timedelta(days=1)),
+                "iat": now,
+                "sub": self.email,
+                "name": self.fullname,
+            }
+            token_payload = jwt.encode(payload, key, algorithm="HS512")
+            token_payload = token_payload.decode("utf-8")
+        except Exception as e:
+            return e
+
+        token = Token(token=token_payload)
+        db.session.add(token)
+        db.session.commit()
+        return token_payload
+
+    @classmethod
+    def validate_token(cls, auth_token):
+        try:
+            payload = jwt.decode(auth_token, key)
+            revoked_token = Token.check_token(auth_token)
+            if revoked_token:
+                return "Token has been revoked. Please log in again."
+            if payload["exp"] < int(datetime.datetime.utcnow().timestamp()):
+                return "Token has expired. Please log in again"
+            email = payload["sub"]
+            return (cls.query.filter_by(email=email)).first()
+        except jwt.ExpiredSignatureError:
+            return "Signature expired. Please log in again."
+        except jwt.InvalidTokenError:
+            return "Invalid token. Please log in again."
+
+
+class Invitation(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    invitation_type = db.Column(db.Enum(InvitationType), nullable=False)
+    response = db.Column(
+        db.Enum(ResponseType), nullable=False, default=ResponseType.NO_RESPONSE
+    )
+    requirements = db.Column(db.String(1000))
+    plus_one = db.Column(db.Boolean, nullable=False, default=False)
+    plus_one_name = db.Column(db.String(256), nullable=True)
+    locked = db.Column(db.Boolean, nullable=False, default=False)
+    invitation_group_id = db.Column(db.Integer, db.ForeignKey("invitation_group.id"))
+
+    @property
+    def users(self):
+        return self.invitation_group.users
+
+
+class InvitationGroup(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    friendly_name = db.Column(db.String(255), nullable=False, unique=True)
+    group_code = db.Column(db.String(16), nullable=False)
+    users = db.relationship("User", backref="invitation_group")
+    invitation = db.relationship(
+        "Invitation", backref="invitation_group", uselist=False
+    )
+
+
+class Token(db.Model):
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    token = db.Column(db.String(1024), nullable=False, unique=True)
+    revoked = db.Column(db.Boolean, nullable=False, default=False)
+    revoked_on = db.Column(db.DateTime)
+
+    @classmethod
+    def check_token(cls, token):
+        rv = cls.query.filter_by(token=token).first()
+        if rv:
+            if rv.revoked:
+                return True
+            return False
+        return True
+
+    @classmethod
+    def revoke(cls, token):
+        rv = cls.query.filter_by(token=token).first()
+        rv.revoked = True
+        rv.revoked_on = datetime.datetime.now()
+        db.session.commit()
+        return True
