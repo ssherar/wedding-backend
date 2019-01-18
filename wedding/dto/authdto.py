@@ -54,20 +54,20 @@ class AuthDTO(object):
                 },
                 409,
             )
-            new_user = User(
-                email=data["email"],
-                password=data["password"],
-                firstname=data["firstname"],
-                lastname=data["lastname"],
-                registered_on=datetime.datetime.now(),
-            )
-            new_user.invitation_group = ig
+        new_user = User(
+            email=data["email"],
+            password=data["password"],
+            firstname=data["firstname"],
+            lastname=data["lastname"],
+            registered_on=datetime.datetime.now(),
+        )
+        new_user.invitation_group = ig
 
-            new_user.untrust_email()
+        new_user.untrust_email()
 
-            db.session.add(new_user)
-            db.session.commit()
-            return ({"status": "201", "message": "account created"}, 201)
+        db.session.add(new_user)
+        db.session.commit()
+        return ({"status": "201", "message": "account created"}, 201)
 
     @staticmethod
     def login(data):
