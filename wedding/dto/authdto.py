@@ -25,6 +25,15 @@ class AuthDTO(object):
             ),
         },
     )
+    email_verification_model = auth_api.model(
+        "email_verification_model",
+        {
+            "verification_code": fields.String(
+                required=True,
+                description="Verification code found in email sent to user",
+            )
+        },
+    )
 
     @staticmethod
     def create(data):
@@ -36,7 +45,7 @@ class AuthDTO(object):
                 {"status": "fail", "message": "registration code does not exist"},
                 409,
             )
-        user = (User.query.filter_by(email=data["email"])).first()
+        user = User.query.filter_by(email=data["email"]).first()
         if user:
             return (
                 {
@@ -53,17 +62,24 @@ class AuthDTO(object):
                 registered_on=datetime.datetime.now(),
             )
             new_user.invitation_group = ig
+
+            new_user.untrust_email()
+
             db.session.add(new_user)
             db.session.commit()
             return ({"status": "201", "message": "account created"}, 201)
 
     @staticmethod
     def login(data):
-        user = (User.query.filter_by(email=data["email"])).first()
+        user = User.query.filter_by(email=data["email"]).first()
         if user:
+            if user.verified is False:
+                return (
+                    {"status": "failed", "message": "email has not been verified"},
+                    410,
+                )
             if user.check_password(data["password"]):
                 token = user.generate_jwt()
-                print(token)
                 return (
                     {
                         "status": "success",
@@ -72,13 +88,10 @@ class AuthDTO(object):
                     },
                     200,
                 )
-                return (
-                    {
-                        "status": "failed",
-                        "message": "username/password combo incorrect",
-                    },
-                    404,
-                )
+        return (
+            {"status": "failed", "message": "username/password combo incorrect"},
+            404,
+        )
 
     @staticmethod
     def logout(auth_token):
@@ -87,9 +100,13 @@ class AuthDTO(object):
         if isinstance(user, User):
             Token.revoke(auth_token)
             return ({"status": "success", "message": "logged out successfully"}, 200)
-            if isinstance(user, str):
-                return ({"status": "fail", "message": user}, 400)
-                return ({"status": "fail", "message": "unknown error"}, 501)
+        if isinstance(user, str):
+            return ({"status": "fail", "message": user}, 400)
+        return ({"status": "fail", "message": "unknown error"}, 501)
 
-
-# okay decompiling __pycache__/authdto.cpython-36.pyc
+    @staticmethod
+    def verify_email(code):
+        message, error = User.validate_email_code(code)
+        if error:
+            return ({"status": "fail", "message": message}, 410)
+        return ({"status": "success", "message": message}, 200)

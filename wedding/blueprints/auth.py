@@ -8,6 +8,7 @@ api = AuthDTO.auth_api
 _reg_user = AuthDTO.registration_model
 _login_user = AuthDTO.login_model
 _password = AuthDTO.password_model
+_email_verification = AuthDTO.email_verification_model
 
 
 @api.route("/register")
@@ -57,3 +58,13 @@ class UserUpdatePassword(Resource):
             {"status": "success", "message": "new password has been successfully set"},
             200,
         )
+
+
+@api.route("/verify")
+class UserVerifyEmail(Resource):
+    @api.response(200, "Email was successfully verified")
+    @api.response(410, "Email code has expired or is incorrect")
+    @api.expect(_email_verification)
+    def post(self):
+        code = request.json.get("verification_code")
+        return AuthDTO.verify_email(code)

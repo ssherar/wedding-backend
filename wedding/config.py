@@ -6,6 +6,7 @@ basedir = os.path.abspath(os.path.dirname(__file__))
 class Config(object):
     DEBUG = False
     SECRET_KEY = os.getenv("SECRET_KEY", "change-me")
+    EMAIL_EXP = 3600 * 3  # 3 days
 
 
 class DevelopmentConfig(Config):

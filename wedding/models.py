@@ -1,8 +1,12 @@
 import datetime
 import enum
 import jwt
+
+from flask import current_app
 from flask_sqlalchemy import SQLAlchemy
 from flask_bcrypt import Bcrypt
+from itsdangerous import URLSafeTimedSerializer
+
 from .config import key
 
 db = SQLAlchemy()
@@ -35,6 +39,11 @@ class User(db.Model):
     registered_on = db.Column(db.DateTime, nullable=False)
     admin = db.Column(db.Boolean, nullable=False, default=False)
     password_hash = db.Column(db.String(100))
+
+    verified = db.Column(db.Boolean, nullable=False, default=False)
+    verification_code = db.Column(db.String(256), nullable=True)
+    verified_on = db.Column(db.DateTime, nullable=True)
+
     invitation_group_id = db.Column(db.Integer, db.ForeignKey("invitation_group.id"))
 
     def __repr__(self):
@@ -97,6 +106,34 @@ class User(db.Model):
             return "Signature expired. Please log in again."
         except jwt.InvalidTokenError:
             return "Invalid token. Please log in again."
+
+    @classmethod
+    def validate_email_code(cls, code):
+        serializer = URLSafeTimedSerializer(current_app.config["SECRET_KEY"])
+        try:
+            email = serializer.loads(code, max_age=current_app.config["EMAIL_EXP"])
+        except Exception:
+            return "Code has expired. Please try again", True
+
+        user = cls.query.filter_by(email=email).first()
+        user.verified = True
+        user.verification_code = None
+        user.verified_on = datetime.datetime.now()
+
+        db.session.add(user)
+        db.session.commit()
+
+        return "Email has been successfully verified", False
+
+    def untrust_email(self):
+        email = self.email
+        serializer = URLSafeTimedSerializer(current_app.config["SECRET_KEY"])
+        code = serializer.dumps(email)
+        print(code)
+
+        self.verified = False
+        self.verified_on = None
+        self.verification_code = code
 
 
 class Invitation(db.Model):
