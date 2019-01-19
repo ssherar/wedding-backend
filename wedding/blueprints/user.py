@@ -1,8 +1,8 @@
 from flask_restplus import Resource
 from flask import request
 from ..dto import UserDTO
-from ..utils import auth_required
-from ..models import db
+from ..utils import auth_required, admin_required
+from ..models import db, User
 
 api = UserDTO.user_api
 _profile_user = UserDTO.user_model
@@ -49,3 +49,12 @@ class Invitation(Resource):
             invitation.plus_one_name = payload["plus_one_name"]
         db.session.commit()
         return ({"status": "success", "message": "invitation response updated"}, 200)
+
+
+@api.route("/all")
+class Users(Resource):
+    @api.doc("Get all users")
+    @api.marshal_with(_profile_user)
+    @admin_required
+    def get(self, user=None):
+        return User.query.all(), 200
