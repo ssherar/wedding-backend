@@ -7,6 +7,7 @@ class UserDTO(object):
     user_model = user_api.model(
         "user",
         {
+            "id": fields.Integer(description="the user's ID number", readonly=True),
             "email": fields.String(description="user email address", readonly=True),
             "firstname": fields.String(description="user's firstname"),
             "lastname": fields.String(description="user's lastname"),
