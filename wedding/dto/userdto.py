@@ -11,7 +11,7 @@ class UserDTO(object):
             "email": fields.String(description="user email address", readonly=True),
             "firstname": fields.String(description="user's firstname"),
             "lastname": fields.String(description="user's lastname"),
-            "fullname": fields.String(description="user's fullname"),
+            "fullname": fields.String(description="user's fullname", readonly=True),
             "admin": fields.Boolean(description="Is the user admin?"),
             "group_name": fields.String(
                 description="Invitation Group name",
