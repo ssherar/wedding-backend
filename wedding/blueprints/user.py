@@ -67,14 +67,16 @@ class UserDetails(Resource):
     @admin_required
     def get(self, user_id, user=None):
         return User.query.filter_by(id=user_id).first_or_404()
-    
+
     @api.doc("Update a single user")
     @api.expect(_profile_user)
     @admin_required
     def patch(self, user_id, user=None):
         payload = request.json
+        user = User.query.filter_by(id=user_id).first_or_404()
         user.email = payload.get("email", user.email)
         user.firstname = payload.get("firstname", user.firstname)
         user.lastname = payload.get("lastname", user.lastname)
+        user.admin = payload.get("admin", user.admin)
         db.session.commit()
         return {"status": "success", "message": "details updated"}, 200
