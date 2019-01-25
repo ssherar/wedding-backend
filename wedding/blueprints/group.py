@@ -1,9 +1,9 @@
 from flask_restplus import Resource
 
-# from flask import request
+from flask import request
 from ..dto import GroupDTO
 from ..utils import admin_required
-from ..models import InvitationGroup
+from ..models import InvitationGroup, db
 
 api = GroupDTO.group_api
 _group = GroupDTO.group_model
@@ -17,3 +17,23 @@ class AllGroups(Resource):
     def get(self, user=None):
         igs = InvitationGroup.query.all()
         return igs, 200
+
+
+@api.route("/<int:group_id>")
+class SingleGroup(Resource):
+    @api.doc("Get a single group from parameters")
+    @api.marshal_with(_group)
+    @admin_required
+    def get(self, group_id, user=None):
+        return InvitationGroup.query.get_or_404(group_id), 200
+
+    @api.doc("Update a groups values")
+    @api.expect(_group)
+    @admin_required
+    def patch(self, group_id, user=None):
+        payload = request.json
+        group = InvitationGroup.query.get_or_404(group_id)
+        group.friendly_name = payload.get("name", group.friendly_name)
+        group.group_code = payload.get("code", group.group_code)
+        db.session.commit()
+        return {"status": "success", "message": "group updated"}, 200
