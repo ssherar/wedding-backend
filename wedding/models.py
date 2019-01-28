@@ -159,8 +159,12 @@ class InvitationGroup(db.Model):
     group_code = db.Column(db.String(16), nullable=False)
     users = db.relationship("User", backref="invitation_group")
     invitation = db.relationship(
-        "Invitation", backref="invitation_group", uselist=False
+        "Invitation", backref="invitation_group", uselist=False, cascade="all,delete"
     )
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.invitation = Invitation()
 
 
 class Token(db.Model):
