@@ -37,3 +37,12 @@ class SingleGroup(Resource):
         group.group_code = payload.get("code", group.group_code)
         db.session.commit()
         return {"status": "success", "message": "group updated"}, 200
+
+    @api.doc("Delete a group")
+    @admin_required
+    def delete(self, group_id, user=None):
+        group = InvitationGroup.query.get_or_404(group_id)
+        db.session.delete(group)
+        db.session.commit()
+        return {"status": "success", "message": "group successfully deleted"}, 204
+
