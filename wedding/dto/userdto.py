@@ -32,16 +32,11 @@ class UserDTO(object):
                 description="invitation type",
                 enum=InvitationType._member_names_,
                 attribute="invitation_type",
-                readonly=True,
             ),
             "requirements": fields.String(description="dietary requirements"),
-            "plus_one": fields.Boolean(
-                description="guest allowed plus one", readonly=True
-            ),
+            "plus_one": fields.Boolean(description="guest allowed plus one"),
             "plus_one_name": fields.String(description="Plus one name"),
-            "locked": fields.Boolean(
-                description="Is the invitation locked", readonly=True
-            ),
+            "locked": fields.Boolean(description="Is the invitation locked"),
             "group_name": fields.String(
                 description="Invitation Group name",
                 readonly=True,

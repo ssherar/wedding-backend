@@ -19,5 +19,6 @@ class GroupDTO(object):
                 attribute="group_code",
             ),
             "users": fields.List(fields.Nested(UserDTO.user_model)),
+            "invitation": fields.Nested(UserDTO.invitation_model),
         },
     )

@@ -46,3 +46,25 @@ class SingleGroup(Resource):
         db.session.commit()
         return {"status": "success", "message": "group successfully deleted"}, 204
 
+
+@api.route("/create")
+class NewGroup(Resource):
+    @api.doc("Create a new group and associated invitation")
+    @api.expect(_group)
+    @admin_required
+    def post(self, user=None):
+        payload = request.json
+        invitation_data = payload.get("invitation")
+
+        group = InvitationGroup()
+
+        group.invitation.invitation_type = invitation_data.get("type")
+        group.invitation.plus_one = invitation_data.get("plus_one")
+
+        group.friendly_name = payload.get("name")
+        group.group_code = payload.get("code")
+        
+        db.session.add(group)
+        db.session.commit()
+
+        return {"status": "success", "message": "group successfully created"}, 201
