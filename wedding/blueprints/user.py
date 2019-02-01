@@ -80,3 +80,23 @@ class UserDetails(Resource):
         user.admin = payload.get("admin", user.admin)
         db.session.commit()
         return {"status": "success", "message": "details updated"}, 200
+
+
+@api.route("/search")
+class UserSearch(Resource):
+    @api.doc("Find a user given a name")
+    @admin_required
+    @api.marshal_list_with(_profile_user)
+    @api.param("q", "query")
+    @api.param("orphaned", "Orphaned users who don't belong to an invitation group")
+    def get(self, user=None):
+        query = User.query
+
+        search = request.args.get("q")
+
+        if request.args.get("orphaned", False):
+            query = query.filter(User.invitation_group_id == None)  # noqa
+
+        query = query.filter(User.fullname.like(f"%{search}%"))
+
+        return query.all()
