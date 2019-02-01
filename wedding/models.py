@@ -7,6 +7,8 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_bcrypt import Bcrypt
 from itsdangerous import URLSafeTimedSerializer
 
+from sqlalchemy.ext.hybrid import hybrid_property
+
 from .config import key
 
 db = SQLAlchemy()
@@ -68,7 +70,7 @@ class User(db.Model):
     def invitation(self):
         return self.invitation_group.invitation
 
-    @property
+    @hybrid_property
     def fullname(self):
         return self.firstname + " " + self.lastname
 
