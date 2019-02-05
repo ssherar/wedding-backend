@@ -1,12 +1,13 @@
 from flask_restplus import Resource
 
 from flask import request
-from ..dto import GroupDTO
+from ..dto import GroupDTO, UserDTO
 from ..utils import admin_required
-from ..models import InvitationGroup, db
+from ..models import InvitationGroup, User, db
 
 api = GroupDTO.group_api
 _group = GroupDTO.group_model
+_profile_user = UserDTO.user_model
 
 
 @api.route("/all")
@@ -40,11 +41,17 @@ class SingleGroup(Resource):
         if inv_payload is not None:
             invitation = group.invitation
             invitation.response = inv_payload.get("response", invitation.response)
-            invitation.invitation_type = inv_payload.get("type", invitation.invitation_type)
-            invitation.requirements = inv_payload.get("requirements", invitation.requirements)
+            invitation.invitation_type = inv_payload.get(
+                "type", invitation.invitation_type
+            )
+            invitation.requirements = inv_payload.get(
+                "requirements", invitation.requirements
+            )
             invitation.plus_one = inv_payload.get("plus_one", invitation.plus_one)
             if invitation.plus_one:
-                invitation.plus_one_name = inv_payload.get('plus_one_name', invitation.plus_one_name)
+                invitation.plus_one_name = inv_payload.get(
+                    "plus_one_name", invitation.plus_one_name
+                )
             else:
                 invitation.plus_one_name = None
             invitation.locked = inv_payload.get("locked", invitation.locked)
@@ -58,6 +65,32 @@ class SingleGroup(Resource):
         db.session.delete(group)
         db.session.commit()
         return {"status": "success", "message": "group successfully deleted"}, 204
+
+
+@api.route("/<int:group_id>/add_user")
+class AttachUserToGroup(Resource):
+    @api.marshal_with(_profile_user)
+    @admin_required
+    def post(self, group_id, user=None):
+        group = InvitationGroup.query.get_or_404(group_id)
+        user_payload = request.json
+        user = User.query.get_or_404(user_payload["id"])
+        group.users.append(user)
+        db.session.commit()
+        return {"status": "success", "message": "user successfully added"}, 200
+
+
+@api.route("/<int:group_id>/remove_user/<int:user_id>")
+class RemoveUserFromGroup(Resource):
+    @admin_required
+    @admin_required
+    def delete(self, group_id, user_id, user=None):
+        user = User.query.get_or_404(user_id)
+        if user.invitation_group_id != group_id:
+            return {"status": "failed", "message": "not attached to this group"}, 404
+        user.invitation_group_id = None
+        db.session.commit()
+        return {"status": "success", "message": "user removed from the group"}, 204
 
 
 @api.route("/create")
@@ -76,8 +109,9 @@ class NewGroup(Resource):
 
         group.friendly_name = payload.get("name")
         group.group_code = payload.get("code")
-        
+
         db.session.add(group)
         db.session.commit()
 
         return {"status": "success", "message": "group successfully created"}, 201
+        
