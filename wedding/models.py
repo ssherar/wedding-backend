@@ -46,6 +46,9 @@ class User(db.Model):
     verification_code = db.Column(db.String(256), nullable=True)
     verified_on = db.Column(db.DateTime, nullable=True)
 
+    password_recovery_code = db.Column(db.String(256), nullable=True)
+    password_recovery_gendate = db.Column(db.DateTime, nullable=True)
+
     invitation_group_id = db.Column(db.Integer, db.ForeignKey("invitation_group.id"))
 
     def __repr__(self):
@@ -136,6 +139,33 @@ class User(db.Model):
         self.verified = False
         self.verified_on = None
         self.verification_code = code
+
+    @classmethod
+    def validate_recovery_code(cls, code):
+        serializer = URLSafeTimedSerializer(current_app.config["SECRET_KEY"])
+        try:
+            email = serializer.loads(code, max_age=current_app.config["EMAIL_EXP"])
+        except Exception:
+            return None
+
+        user = cls.query.filter_by(email=email, password_recovery_code=code).first()
+        if user is None:
+            return None
+
+        user.password_recovery_code = None
+        user.password_recovery_gendate = None
+
+        return user
+
+    def generate_recovery_code(self):
+        email = self.email
+        serializer = URLSafeTimedSerializer(current_app.config["SECRET_KEY"])
+        code = serializer.dumps(email)
+        print("recovery code: ", code)
+
+        self.password_recovery_code = code
+        self.password_recovery_gendate = datetime.datetime.now()
+        db.session.commit()
 
 
 class Invitation(db.Model):

@@ -9,6 +9,8 @@ _reg_user = AuthDTO.registration_model
 _login_user = AuthDTO.login_model
 _password = AuthDTO.password_model
 _email_verification = AuthDTO.email_verification_model
+_forgotten_password = AuthDTO.forgotten_password_model
+_reset_password = AuthDTO.reset_password_model
 
 
 @api.route("/register")
@@ -62,9 +64,28 @@ class UserUpdatePassword(Resource):
 
 @api.route("/verify")
 class UserVerifyEmail(Resource):
+    @api.doc("Verify an email address", security=None)
     @api.response(200, "Email was successfully verified")
     @api.response(410, "Email code has expired or is incorrect")
     @api.expect(_email_verification)
     def post(self):
         code = request.json.get("verification_code")
         return AuthDTO.verify_email(code)
+
+
+@api.route("/forgottenpassword")
+class UserForgottenPassword(Resource):
+    @api.doc("Send a forgotten message to an email address", security=None)
+    @api.expect(_forgotten_password)
+    def post(self):
+        payload = request.json
+        return AuthDTO.send_forgotten_email(payload["email"])
+
+
+@api.route("/resetpassword")
+class UserResetPassword(Resource):
+    @api.doc("Reset a users password with given recovery code", security=None)
+    @api.expect(_reset_password)
+    def post(self):
+        payload = request.json
+        return AuthDTO.reset_password(payload["reset_code"], payload["password"])

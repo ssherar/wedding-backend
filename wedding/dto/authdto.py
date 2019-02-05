@@ -34,6 +34,28 @@ class AuthDTO(object):
             )
         },
     )
+    forgotten_password_model = auth_api.model(
+        "forgotten_password_model",
+        {
+            "email": fields.String(
+                required=True,
+                description="Email address to potentially send a recovery email to",
+            )
+        },
+    )
+
+    reset_password_model = auth_api.model(
+        "reset_password_model",
+        {
+            "reset_code": fields.String(
+                required=True,
+                description="Code that was generated and sent to the user via email",
+            ),
+            "password": fields.String(
+                required=True, description="New password to be set to the user"
+            ),
+        },
+    )
 
     @staticmethod
     def create(data):
@@ -110,3 +132,34 @@ class AuthDTO(object):
         if error:
             return ({"status": "fail", "message": message}, 410)
         return ({"status": "success", "message": message}, 200)
+
+    @staticmethod
+    def send_forgotten_email(email_address):
+        user = User.query.filter_by(email=email_address).first()
+        if user is not None:
+            user.generate_recovery_code()
+            #  Send email!
+        return {}, 200
+
+    @staticmethod
+    def reset_password(code, password):
+        user = User.validate_recovery_code(code)
+        print(user)
+        if user is not None:
+            user.password = password
+            db.session.commit()
+            return (
+                {
+                    "status": "success",
+                    "message": "Password has been updated successfully",
+                },
+                200,
+            )
+        return (
+            {
+                "status": "fail",
+                "message": "Code is invalid. Please try and reset your password again",
+            },
+            400,
+        )
+
