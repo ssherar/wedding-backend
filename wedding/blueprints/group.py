@@ -114,4 +114,15 @@ class NewGroup(Resource):
         db.session.commit()
 
         return {"status": "success", "message": "group successfully created"}, 201
-        
+
+
+@api.route("/find/<code>")
+class FindGroupByCode(Resource):
+    @api.doc("find a group given a code")
+    def get(self, code):
+        group = InvitationGroup.query.filter_by(group_code=code).first_or_404()
+        return {
+            "id": group.id,
+            "name": group.friendly_name,
+            "registration_code": group.group_code
+        }
