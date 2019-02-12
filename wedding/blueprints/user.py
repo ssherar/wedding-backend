@@ -81,6 +81,15 @@ class UserDetails(Resource):
         db.session.commit()
         return {"status": "success", "message": "details updated"}, 200
 
+    @api.doc("Delete a user")
+    @admin_required
+    def delete(self, user_id, user=None):
+        u = User.query.get_or_404(user_id)
+        db.session.delete(u)
+        db.session.commit()
+
+        return {"status": "success", "message": "user has been deleted"}, 204
+
 
 @api.route("/search")
 class UserSearch(Resource):
