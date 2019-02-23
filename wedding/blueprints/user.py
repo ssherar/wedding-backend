@@ -73,11 +73,12 @@ class UserDetails(Resource):
     @admin_required
     def patch(self, user_id, user=None):
         payload = request.json
-        user = User.query.filter_by(id=user_id).first_or_404()
-        user.email = payload.get("email", user.email)
-        user.firstname = payload.get("firstname", user.firstname)
-        user.lastname = payload.get("lastname", user.lastname)
-        user.admin = payload.get("admin", user.admin)
+        u = User.query.filter_by(id=user_id).first_or_404()
+        u.email = payload.get("email", u.email)
+        u.firstname = payload.get("firstname", u.firstname)
+        u.lastname = payload.get("lastname", u.lastname)
+        if user.id != u.id:
+            u.admin = payload.get("admin", u.admin)
         db.session.commit()
         return {"status": "success", "message": "details updated"}, 200
 
