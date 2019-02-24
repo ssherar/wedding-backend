@@ -193,10 +193,20 @@ class InvitationGroup(db.Model):
     invitation = db.relationship(
         "Invitation", backref="invitation_group", uselist=False, cascade="all,delete"
     )
+    names = db.relationship("InvitationName")
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.invitation = Invitation()
+
+
+class InvitationName(db.Model):
+    __tablename__ = 'invitation_names'
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(255), nullable=False)
+    group_id = db.Column(db.Integer, db.ForeignKey("invitation_group.id"))
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)
+    user = db.relationship("User")
 
 
 class Token(db.Model):

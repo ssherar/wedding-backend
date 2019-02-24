@@ -18,7 +18,8 @@ class GroupDTO(object):
                 description="Unique code to allow a new user to register as part of the party",
                 attribute="group_code",
             ),
-            "users": fields.List(fields.Nested(UserDTO.user_model)),
-            "invitation": fields.Nested(UserDTO.invitation_model),
+            #"users": fields.List(fields.Nested(UserDTO.user_model)),
+            "names": fields.List(fields.Nested(UserDTO.invitation_names)),
+            "invitation": fields.Nested(UserDTO.invitation_model)
         },
     )

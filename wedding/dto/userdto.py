@@ -20,6 +20,15 @@ class UserDTO(object):
             ),
         },
     )
+    invitation_names = user_api.model(
+        "invitation_names",
+        {
+            "users": fields.String(
+                description="Name of the user"
+            ),
+            "user": fields.Nested(user_model)
+        }
+    )
     invitation_model = user_api.model(
         "invitation",
         {
@@ -41,6 +50,6 @@ class UserDTO(object):
                 description="Invitation Group name",
                 readonly=True,
                 attribute="invitation_group.friendly_name",
-            ),
+            )
         },
     )
