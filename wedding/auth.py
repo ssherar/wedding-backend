@@ -1,16 +1,36 @@
 from typing import Dict
 
 from connexion.exceptions import ProblemException
-from .models import Token, User
-from .utils import success, fail, Message
+from .models import db, Token, User
+from .utils import success, fail, info, Message
 
 
-def change_password():
-    pass
+def change_password(body: Dict[str, str], user: User) -> (Message, int):
+    """
+    Changes the users password if they are logged in
+    """
+    password = body.get("password", None)
+    if not password:
+        return fail("You did not provide a password"), 404
+    user.password = password
+    db.session.commit()
+
+    return success("Password changed successfully"), 200
 
 
-def forgotten_password():
-    pass
+def forgotten_password(body: Dict[str, str], user: User = None) -> (Message, int):
+    """
+    Sends an email to the user (if they exist) from the email passed
+    in by the body of the request with a 24 hour time sensitive code.
+
+    It will always return HTTP OK and INFO so to stop account guessing
+    """
+    email = body.get("email", None)
+    user: User = User.query.filter_by(email=email).first()
+    if user is not None:
+        user.generate_recovery_code()
+        #  Send email!
+    return info("An email has been sent to the email associated to this user if it exists. Please check your inbox"), 200
 
 
 def login(body: Dict[str, str], user: User = None) -> (Message, int):
@@ -45,7 +65,7 @@ def login(body: Dict[str, str], user: User = None) -> (Message, int):
         return fail("Email/Password combo incorrect"), 404
 
 
-def logout(body, user: User = None, token_info=None) -> (Message, int):
+def logout(body: Dict[str, str] , user: User = None, token_info=None) -> (Message, int):
     token: str = token_info.get("token")
     Token.revoke(token)
 
@@ -56,8 +76,23 @@ def register_user():
     pass
 
 
-def reset_password():
-    pass
+def reset_password(body: Dict[str, str], user: User = None) -> (Message, int):
+    code = body.get("reset_code", None)
+    password = body.get("password", None)
+
+    if code is None:
+        return fail("Code was not provided"), 404
+    if password is None:
+        return fail("Password was not provided"), 404
+
+    try:
+        user: User = User.validate_recovery_code(code)
+    except Exception as e:
+        return fail(str(e)), 404
+
+    user.password = password
+    db.session.commit()
+    return success("Password has been updated successfully. Please try and login again"), 200
 
 
 def verify_user():

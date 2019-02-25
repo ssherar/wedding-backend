@@ -147,11 +147,11 @@ class User(db.Model):
         try:
             email = serializer.loads(code, max_age=current_app.config["EMAIL_EXP"])
         except Exception:
-            return None
+            raise Exception("Code has expired. Please try and reset your password again")
 
         user = cls.query.filter_by(email=email, password_recovery_code=code).first()
         if user is None:
-            return None
+            raise Exception("Code is not valid. Please try and reset your password again")
 
         user.password_recovery_code = None
         user.password_recovery_gendate = None

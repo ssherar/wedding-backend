@@ -173,6 +173,8 @@ paths:
       responses:
         '200':
           description: Success
+        '404':
+          description: Code/Password was not provided OR code is invalid
       operationId: wedding.auth.reset_password
       security: []
       tags:
