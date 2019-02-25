@@ -1,0 +1,575 @@
+openapi: 3.0.0
+info:
+  title: Wedding API
+  version: '1.0'
+  description: Wedding API
+servers:
+  - url: 'http://localhost:5000/api'
+    description: 'Local server'
+security:
+  - jwt: []
+tags:
+  - name: auth
+    description: auth related operations
+  - name: user
+    description: User relatded operations
+  - name: group
+    description: Invitation Group related operations
+paths:
+  /auth/changepassword:
+    post:
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                password:
+                  type: string
+                  format: password
+      responses:
+        '200':
+          description: Password changed successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Message'
+        '404':
+          description: Unable to update password
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Message'
+      operationId: wedding.auth.change_password
+      tags:
+        - auth
+  /auth/forgottenpassword:
+    post:
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                  format: email
+
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Message'
+              example:
+                status: 'INFO'
+                message: 'An email has been sent to the email associated to this user. Please check'
+      operationId: wedding.auth.forgotten_password
+      security: []
+      tags:
+        - auth
+  /auth/login:
+    post:
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserLogin'
+      responses:
+        '200':
+          description: Logged in successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Message'
+              example:
+                status: SUCCESS
+                message: Logged in successfully
+        '404':
+          description: User/Password combo incorrect
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Message'
+              example:
+                status: FAIL
+                message: Email/Password combo incorrect
+      operationId: wedding.auth.login
+      security: []
+      tags:
+        - auth
+  /auth/logout:
+    post:
+      responses:
+        '200':
+          description: User logged out successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Message'
+              example:
+                status: SUCCESS
+                message: Logged out successfully
+        '404':
+          description: User not logged in
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Message'
+              example:
+                status: FAIL
+                message: User not logged in
+      operationId: wedding.auth.logout
+      tags:
+        - auth
+  /auth/register:
+    post:
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserRegistration'
+      responses:
+        '201':
+          description: User successfully created.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Message'
+              example:
+                status: SUCCESS
+                message: User successfully created. Please login.
+        '409':
+          description: User already exists
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Message'
+              example:
+                status: FAIL
+                message: User already exists with that email address
+      operationId: wedding.auth.register_user
+      security: []
+      tags:
+        - auth
+  /auth/resetpassword:
+    post:
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                reset_code:
+                  type: string
+                password:
+                  type: string
+                  format: password
+              required:
+                - reset_code
+                - password
+      responses:
+        '200':
+          description: Success
+      operationId: wedding.auth.reset_password
+      security: []
+      tags:
+        - auth
+  /auth/verify:
+    post:
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                verification_code:
+                  type: string
+              required:
+                - verification_code
+      responses:
+        '200':
+          description: Email was successfully verified
+        '410':
+          description: Email code has expired or is incorrect
+      operationId: wedding.auth.verify_user
+      security: []
+      tags:
+        - auth
+  /groups/all:
+    get:
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/InvitationGroup'
+      operationId: wedding.group.all_groups
+      tags:
+        - group
+  /groups/create:
+    post:
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/InvitationGroup'
+      responses:
+        '200':
+          description: Success
+      operationId: wedding.group.create_group
+      tags:
+        - group
+  '/groups/find/{code}':
+    parameters:
+      - name: code
+        in: path
+        required: true
+        schema:
+          type: string
+          pattern: '^\d{3}-\d{3}-\d{3}$'
+    get:
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: integer
+                  name:
+                    type: string
+                  registration_code:
+                    type: string
+                    pattern: '^\d{3}-\d{3}-\d{3}$'
+        '404':
+          description: Group not found
+      operationId: wedding.group.find_by_registration_code
+      tags:
+        - group
+  '/groups/{group_id}':
+    parameters:
+      - name: group_id
+        in: path
+        required: true
+        schema:
+          type: integer
+    delete:
+      responses:
+        '200':
+          description: Success
+      operationId: wedding.group.delete_group
+      tags:
+        - group
+    patch:
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/InvitationGroup'
+      responses:
+        '200':
+          description: Success
+      operationId: wedding.group.patch_group
+      tags:
+        - group
+    get:
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InvitationGroup'
+      operationId: wedding.group.get_group
+      tags:
+        - group
+  '/groups/{group_id}/add_user':
+    parameters:
+      - name: group_id
+        in: path
+        required: true
+        schema:
+          type: integer
+    post:
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/User'
+      responses:
+        '200':
+          description: Success
+      operationId: wedding.group.add_user_to_group
+      tags:
+        - group
+  '/groups/{group_id}/remove_user/{user_id}':
+    parameters:
+      - name: group_id
+        in: path
+        required: true
+        schema:
+          type: integer
+      - name: user_id
+        in: path
+        required: true
+        schema:
+          type: integer
+    delete:
+      responses:
+        '200':
+          description: Success
+        '404':
+          description: User not found in group
+      operationId: wedding.group.remove_user_from_group
+      tags:
+        - group
+  /profile/all:
+    get:
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/User'
+      operationId: wedding.user.all_users
+      tags:
+        - user
+  /profile/invitation:
+    post:
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Invitation'
+      responses:
+        '200':
+          description: Success
+      operationId: wedding.user.submit_invitation
+      tags:
+        - user
+    get:
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Invitation'
+      operationId: wedding.user.get_invitation
+      tags:
+        - user
+  /profile/me:
+    patch:
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/User'
+      responses:
+        '200':
+          description: Success
+      operationId: wedding.user.patch_me
+      tags:
+        - user
+    get:
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+      operationId: wedding.user.get_me
+      tags:
+        - user
+  /profile/search:
+    get:
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/User'
+      operationId: wedding.user.find_user
+      parameters:
+        - in: query
+          description: Orphaned users who don't belong to an invitation group
+          name: orphaned
+          schema:
+            type: boolean
+        - in: query
+          description: query
+          name: q
+          schema:
+            type: string
+      tags:
+        - user
+  '/profile/{user_id}':
+    parameters:
+      - name: user_id
+        in: path
+        required: true
+        schema:
+          type: integer
+    delete:
+      responses:
+        '200':
+          description: Success
+      operationId: wedding.user.delete_user
+      tags:
+        - user
+    patch:
+      responses:
+        '200':
+          description: Success
+      operationId: wedding.user.patch_user
+
+      tags:
+        - user
+    get:
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '404':
+          description: User not found
+      operationId: wedding.user.get_user
+      tags:
+        - user
+components:
+  schemas:
+    User:
+      type: object
+      properties:
+        id:
+          type: integer
+        email:
+          type: string
+          format: email
+        firstname:
+          type: string
+        lastname:
+          type: string
+        fullname:
+          type: string
+        admin:
+          type: boolean
+        group_name:
+          type: string
+          nullable: true
+    UserRegistration:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+        firstname:
+          type: string
+        lastname:
+          type: string
+        password:
+          type: string
+          format: password
+          writeOnly: true
+        registration_code:
+          type: string
+          pattern: '^\d{3}-\d{3}-\d{3}$'
+      required:
+        - email
+        - firstname
+        - lastname
+        - password
+        - registration_code
+    UserLogin:
+      type: object
+      properties:
+        username:
+          type: string
+          format: email
+        password:
+          type: string
+          format: password
+    InvitationGroup:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        name:
+          type: string
+        code:
+          type: string
+          format: '^\d{3}-\d{3}-\d{3}$'
+        guests:
+          type: array
+          readOnly: true
+          items:
+            oneOf:
+              - $ref: '#/components/schemas/User'
+              - $ref: '#/components/schemas/Guest'
+        invitation:
+          $ref: '#/components/schemas/Invitation'
+    Guest:
+      type: object
+      properties:
+        name:
+          type: string
+    Invitation:
+      type: object
+      properties:
+        response:
+          type: string
+          enum:
+            - NO_RESPONSE
+            - CONFIRMED
+            - DECLINED
+        type:
+          type: string
+          enum:
+            - HOUSE
+            - WEEKEND
+            - DAY
+        requirements:
+          type: string
+        plus_one:
+          type: boolean
+        plus_one_name:
+          type: string
+        locked:
+          type: boolean
+        group_name:
+          type: string
+          readOnly: true
+    Message:
+      type: object
+      properties:
+        status:
+          type: string
+          enum:
+            - SUCCESS
+            - FAIL
+            - INFO
+        message:
+          type: string
+  securitySchemes:
+    jwt:
+      type: apiKey
+      in: header
+      name: X-API-Key
+      x-apikeyInfoFunc: wedding.auth.check_token

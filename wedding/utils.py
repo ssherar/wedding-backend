@@ -1,4 +1,6 @@
 import functools
+
+from connexion.exceptions import ProblemException
 from flask import request
 from .models import User
 
@@ -19,11 +21,9 @@ def auth_required(f):
 def admin_required(f):
     @functools.wraps(f)
     def inner(*args, **kwargs):
-        token = request.headers.get("X-API-Token")
-        authed = User.validate_token(token)
-        if isinstance(authed, User) and authed.admin:
-            kwargs["user"] = authed
+        user = kwargs.get("user")
+        if not user.admin:
             return f(*args, **kwargs)
-        return {"status": "failed", "message": "not an admin"}, 401
+        raise ProblemException(404, "Unauthorized", "You are not authorized to visit this page")
 
     return inner

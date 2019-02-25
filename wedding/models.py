@@ -2,6 +2,7 @@ import datetime
 import enum
 import jwt
 
+from connexion.exceptions import ProblemException
 from flask import current_app
 from flask_sqlalchemy import SQLAlchemy
 from flask_bcrypt import Bcrypt
@@ -97,20 +98,20 @@ class User(db.Model):
         return token_payload
 
     @classmethod
-    def validate_token(cls, auth_token):
+    def validate_token(cls, auth_token: str):
         try:
             payload = jwt.decode(auth_token, key)
             revoked_token = Token.check_token(auth_token)
             if revoked_token:
-                return "Token has been revoked. Please log in again."
+                raise ProblemException(401, "Unauthorized", "Token has been revoked. Please log in again.")
             if payload["exp"] < int(datetime.datetime.utcnow().timestamp()):
-                return "Token has expired. Please log in again"
+                raise ProblemException(401, "Unauthorized", "Token has expired. Please log in again")
             email = payload["sub"]
             return (cls.query.filter_by(email=email)).first()
         except jwt.ExpiredSignatureError:
-            return "Signature expired. Please log in again."
+            raise ProblemException(401, "Unauthorized", "Signature expired. Please log in again.")
         except jwt.InvalidTokenError:
-            return "Invalid token. Please log in again."
+            raise ProblemException(401, "Unauthorized", "Invalid token. Please log in again.")
 
     @classmethod
     def validate_email_code(cls, code):
