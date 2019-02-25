@@ -86,6 +86,7 @@ paths:
               example:
                 status: SUCCESS
                 message: Logged in successfully
+                token: 'eyJhb...'
         '404':
           description: User/Password combo incorrect
           content:
@@ -499,7 +500,7 @@ components:
     UserLogin:
       type: object
       properties:
-        username:
+        email:
           type: string
           format: email
         password:

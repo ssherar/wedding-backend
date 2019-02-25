@@ -1,5 +1,8 @@
+from typing import Dict
+
 from connexion.exceptions import ProblemException
 from .models import User
+from .utils import success, fail, Message
 
 
 def change_password():
@@ -10,8 +13,36 @@ def forgotten_password():
     pass
 
 
-def login():
-    pass
+def login(body: Dict[str, str], user: User = None) -> (Message, int):
+    """
+    Authenticates a user from a given email/pasword passed in the request body.
+
+    200 is only ever given when the token has been generated and passed back. Otherwise
+    all the other responses will be 404 and a non-descript error message to stop any potential
+    guessing of account emails
+
+    :param body: Parameters passed in the body of the request
+    :param user: The user calling the command, normally `None` and will be overwritten
+    :return: A `Message` type and the HTTP status code (404 or 200)
+    """
+    email: str = body.get('email', None)
+    password: str = body.get('password', None)
+
+    if email is None or password is None:
+        return fail("Email/Password combo incorrect"), 404
+
+    user: User = User.query.filter_by(email=email).first()
+    if user is None:
+        return fail("Email/Password combo incorrect"), 404
+
+    if not user.verified:
+        return fail("Email has not been verified."), 404
+
+    if user.check_password(password):
+        token = user.generate_jwt()
+        return success("User logged in", token=token), 200
+    else:
+        return fail("Email/Password combo incorrect"), 404
 
 
 def logout():
