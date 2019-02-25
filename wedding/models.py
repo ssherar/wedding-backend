@@ -119,7 +119,7 @@ class User(db.Model):
         try:
             email = serializer.loads(code, max_age=current_app.config["EMAIL_EXP"])
         except Exception:
-            return "Code has expired. Please try again", True
+            raise Exception("Code has expired. Please try again")
 
         user = cls.query.filter_by(email=email).first()
         user.verified = True
@@ -128,8 +128,6 @@ class User(db.Model):
 
         db.session.add(user)
         db.session.commit()
-
-        return "Email has been successfully verified", False
 
     def untrust_email(self):
         email = self.email

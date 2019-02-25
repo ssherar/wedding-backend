@@ -1,7 +1,9 @@
 from typing import Dict
 
+from datetime import datetime
+
 from connexion.exceptions import ProblemException
-from .models import db, Token, User
+from .models import db, Token, User, InvitationGroup
 from .utils import success, fail, info, Message
 
 
@@ -72,8 +74,45 @@ def logout(body: Dict[str, str] , user: User = None, token_info=None) -> (Messag
     return success("Logged out successfully!"), 200
 
 
-def register_user():
-    pass
+def register_user(body: Dict[str, str] , user: User = None) -> (Message, int):
+    email = body.get("email", None)
+    firstname = body.get("firstname", None)
+    lastname = body.get("lastname", None)
+    password = body.get("password", None)
+    registration_code = body.get("registration_code", None)
+
+    if registration_code is None:
+        return fail("Registration code is required"), 400
+    if email is None:
+        return fail("Email address is required"), 400
+    if firstname is None or lastname is None:
+        return fail("Firstname and Lastname is required"), 400
+    if password is None:
+        return fail("Password is required"), 400
+
+    ig = InvitationGroup.query.filter_by(group_code=registration_code).first()
+    if not ig:
+        return fail("The registration code entered is incorrect"),
+    
+    user = User.query.filter_by(email=email).first()
+    if user:
+        return fail(f"The email adddress '{email}' is already registered to an account"), 409
+    
+    new_user = User(
+        email=email,
+        password=password,
+        firstname=firstname,
+        lastname=lastname,
+        registered_on=datetime.now()
+    )
+
+    new_user.invitation_group = ig
+    new_user.untrust_email()
+
+    db.session.add(new_user)
+    db.session.commit()
+
+    return success("Account has been created. Please verify your email address"), 201
 
 
 def reset_password(body: Dict[str, str], user: User = None) -> (Message, int):
@@ -95,8 +134,17 @@ def reset_password(body: Dict[str, str], user: User = None) -> (Message, int):
     return success("Password has been updated successfully. Please try and login again"), 200
 
 
-def verify_user():
-    pass
+def verify_user(body: Dict[str, str], user: User = None) -> (Message, int):
+    code = body.get("verification_code", None)
+    if code is None:
+        return fail("verification code was not provided"), 404
+    
+    try:
+        User.validate_email_code(code)
+    except Exception as e:
+        return fail(str(e)), 400
+    
+    return success("Your account has been successfully verified. Please login"), 200
 
 
 def check_token(token: str, required_scopes=None) -> any:

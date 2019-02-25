@@ -141,6 +141,24 @@ paths:
               example:
                 status: SUCCESS
                 message: User successfully created. Please login.
+        '400':
+          description: Required information was not provided
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Message'
+              example:
+                status: FAIL
+                message: Email is required
+        '404':
+          description: Registration code is not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Message'
+              example:
+                status: FAIL
+                message: The registration code entered is incorrect
         '409':
           description: User already exists
           content:
@@ -194,8 +212,31 @@ paths:
       responses:
         '200':
           description: Email was successfully verified
-        '410':
-          description: Email code has expired or is incorrect
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Message'
+              example:
+                status: SUCCESS
+                message: Your email address was successfully verified. Please login
+        '400':
+          description: Email code has expired
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Message'
+              example:
+                status: FAIL
+                message: The verification code has expired. Please try again
+        '404':
+          description: Email code was not provided
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Message'
+              example:
+                status: FAIL
+                message: The verification code was incorret
       operationId: wedding.auth.verify_user
       security: []
       tags:
