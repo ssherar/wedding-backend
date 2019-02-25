@@ -16,7 +16,7 @@ def create_app(config_name):
     def after_request(response):
         response.headers.add("Access-Control-Allow-Origin", "*")
         response.headers.add(
-            "Access-Control-Allow-Headers", "Content-Type, Authorization, x-api-token"
+            "Access-Control-Allow-Headers", "Content-Type, Authorization, x-api-key"
         )
         response.headers.add(
             "Access-Control-Allow-Methods", "GET,PUT,POST,DELETE,PATCH"
