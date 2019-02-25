@@ -1,7 +1,7 @@
 from typing import Dict
 
 from connexion.exceptions import ProblemException
-from .models import User
+from .models import Token, User
 from .utils import success, fail, Message
 
 
@@ -45,8 +45,11 @@ def login(body: Dict[str, str], user: User = None) -> (Message, int):
         return fail("Email/Password combo incorrect"), 404
 
 
-def logout():
-    pass
+def logout(body, user: User = None, token_info=None) -> (Message, int):
+    token: str = token_info.get("token")
+    Token.revoke(token)
+
+    return success("Logged out successfully!"), 200
 
 
 def register_user():
@@ -72,7 +75,8 @@ def check_token(token: str, required_scopes=None) -> any:
     try:
         user: User = User.validate_token(token)
         return {
-            'sub': user
+            'sub': user,
+            'token': token
         }
     except ProblemException as e:
         raise e
