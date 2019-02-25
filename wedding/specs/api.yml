@@ -517,6 +517,7 @@ components:
         group_name:
           type: string
           nullable: true
+          readOnly: true
     UserRegistration:
       type: object
       properties:

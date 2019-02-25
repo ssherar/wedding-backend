@@ -165,6 +165,17 @@ class User(db.Model):
         self.password_recovery_code = code
         self.password_recovery_gendate = datetime.datetime.now()
         db.session.commit()
+    
+    def dump(self):
+        return {
+            "id": self.id,
+            "email": self.email,
+            "firstname": self.firstname,
+            "lastname": self.lastname,
+            "fullname": self.fullname,
+            "admin": self.admin,
+            "group_name": self.invitation_group.friendly_name
+        }
 
 
 class Invitation(db.Model):

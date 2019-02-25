@@ -23,9 +23,9 @@ def admin_required(f):
     @functools.wraps(f)
     def inner(*args, **kwargs):
         user = kwargs.get("user")
-        if not user.admin:
+        if user.admin:
             return f(*args, **kwargs)
-        raise ProblemException(404, "Unauthorized", "You are not authorized to visit this page")
+        raise ProblemException(403, "Unauthorized", "You are not authorized to visit this page")
 
     return inner
 
