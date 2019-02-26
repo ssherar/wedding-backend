@@ -2,6 +2,7 @@ import datetime
 import enum
 import jwt
 
+from connexion.exceptions import ProblemException
 from flask import current_app
 from flask_sqlalchemy import SQLAlchemy
 from flask_bcrypt import Bcrypt
@@ -97,20 +98,20 @@ class User(db.Model):
         return token_payload
 
     @classmethod
-    def validate_token(cls, auth_token):
+    def validate_token(cls, auth_token: str):
         try:
             payload = jwt.decode(auth_token, key)
             revoked_token = Token.check_token(auth_token)
             if revoked_token:
-                return "Token has been revoked. Please log in again."
+                raise ProblemException(401, "Unauthorized", "Token has been revoked. Please log in again.")
             if payload["exp"] < int(datetime.datetime.utcnow().timestamp()):
-                return "Token has expired. Please log in again"
+                raise ProblemException(401, "Unauthorized", "Token has expired. Please log in again")
             email = payload["sub"]
             return (cls.query.filter_by(email=email)).first()
         except jwt.ExpiredSignatureError:
-            return "Signature expired. Please log in again."
+            raise ProblemException(401, "Unauthorized", "Signature expired. Please log in again.")
         except jwt.InvalidTokenError:
-            return "Invalid token. Please log in again."
+            raise ProblemException(401, "Unauthorized", "Invalid token. Please log in again.")
 
     @classmethod
     def validate_email_code(cls, code):
@@ -118,7 +119,7 @@ class User(db.Model):
         try:
             email = serializer.loads(code, max_age=current_app.config["EMAIL_EXP"])
         except Exception:
-            return "Code has expired. Please try again", True
+            raise Exception("Code has expired. Please try again")
 
         user = cls.query.filter_by(email=email).first()
         user.verified = True
@@ -127,8 +128,6 @@ class User(db.Model):
 
         db.session.add(user)
         db.session.commit()
-
-        return "Email has been successfully verified", False
 
     def untrust_email(self):
         email = self.email
@@ -146,11 +145,11 @@ class User(db.Model):
         try:
             email = serializer.loads(code, max_age=current_app.config["EMAIL_EXP"])
         except Exception:
-            return None
+            raise Exception("Code has expired. Please try and reset your password again")
 
         user = cls.query.filter_by(email=email, password_recovery_code=code).first()
         if user is None:
-            return None
+            raise Exception("Code is not valid. Please try and reset your password again")
 
         user.password_recovery_code = None
         user.password_recovery_gendate = None
@@ -166,6 +165,17 @@ class User(db.Model):
         self.password_recovery_code = code
         self.password_recovery_gendate = datetime.datetime.now()
         db.session.commit()
+    
+    def dump(self):
+        return {
+            "id": self.id,
+            "email": self.email,
+            "firstname": self.firstname,
+            "lastname": self.lastname,
+            "fullname": self.fullname,
+            "admin": self.admin,
+            "group_name": self.invitation_group.friendly_name
+        }
 
 
 class Invitation(db.Model):
@@ -183,6 +193,16 @@ class Invitation(db.Model):
     @property
     def users(self):
         return self.invitation_group.users
+    
+    def dump(self):
+        return {
+            'type': str(self.invitation_type),
+            'response': str(self.response),
+            'requirements': self.requirements,
+            'plus_one': self.plus_one,
+            'plus_one_name': self.plus_one_name,
+            'locked': self.locked
+        }
 
 
 class InvitationGroup(db.Model):
@@ -193,10 +213,40 @@ class InvitationGroup(db.Model):
     invitation = db.relationship(
         "Invitation", backref="invitation_group", uselist=False, cascade="all,delete"
     )
+    guests = db.relationship("Guest")
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.invitation = Invitation()
+    
+    def dump(self):
+        rv = {
+            'id': self.id,
+            'code': self.group_code,
+            'name': self.friendly_name,
+            'invitation': self.invitation.dump(),
+            'guests': [g.dump() for g in self.guests]
+        }
+        return rv
+
+
+class Guest(db.Model):
+    __tablename__ = 'guests'
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(255), nullable=False)
+    group_id = db.Column(db.Integer, db.ForeignKey("invitation_group.id"))
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)
+    user = db.relationship("User")
+
+    def dump(self):
+        rv = {
+            'id': self.id,
+            'name': self.name,
+            'user': None
+        }
+        if self.user:
+            rv["user"] = self.user.dump()
+        return rv
 
 
 class Token(db.Model):
