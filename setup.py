@@ -5,13 +5,13 @@ deps = [
     "sqlalchemy",
     "flask-sqlalchemy",
     "Flask-Migrate",
-    "flask-restplus",
+    "connexion"
     "pyjwt",
 ]
 
 setup(
     name="wedding-backend",
-    version="v0.0.1",
+    version="v0.1.0",
     author="Sam Sherar <sbsherar@gmail.com>",
     packages=find_packages(),
     install_requires=deps,
