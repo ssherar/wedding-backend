@@ -193,6 +193,16 @@ class Invitation(db.Model):
     @property
     def users(self):
         return self.invitation_group.users
+    
+    def dump(self):
+        return {
+            'type': str(self.invitation_type),
+            'response': str(self.response),
+            'requirements': self.requirements,
+            'plus_one': self.plus_one,
+            'plus_one_name': self.plus_one_name,
+            'locked': self.locked
+        }
 
 
 class InvitationGroup(db.Model):
@@ -203,20 +213,40 @@ class InvitationGroup(db.Model):
     invitation = db.relationship(
         "Invitation", backref="invitation_group", uselist=False, cascade="all,delete"
     )
-    names = db.relationship("InvitationName")
+    guests = db.relationship("Guest")
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.invitation = Invitation()
+    
+    def dump(self):
+        rv = {
+            'id': self.id,
+            'code': self.group_code,
+            'name': self.friendly_name,
+            'invitation': self.invitation.dump(),
+            'guests': [g.dump() for g in self.guests]
+        }
+        return rv
 
 
-class InvitationName(db.Model):
-    __tablename__ = 'invitation_names'
+class Guest(db.Model):
+    __tablename__ = 'guests'
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(255), nullable=False)
     group_id = db.Column(db.Integer, db.ForeignKey("invitation_group.id"))
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)
     user = db.relationship("User")
+
+    def dump(self):
+        rv = {
+            'id': self.id,
+            'name': self.name,
+            'user': None
+        }
+        if self.user:
+            rv["user"] = self.user.dump()
+        return rv
 
 
 class Token(db.Model):

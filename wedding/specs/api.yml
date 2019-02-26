@@ -295,6 +295,7 @@ paths:
         '404':
           description: Group not found
       operationId: wedding.group.find_by_registration_code
+      security: []
       tags:
         - group
   '/groups/{group_id}':
@@ -334,7 +335,7 @@ paths:
       operationId: wedding.group.get_group
       tags:
         - group
-  '/groups/{group_id}/add_user':
+  '/groups/{group_id}/add_guest':
     parameters:
       - name: group_id
         in: path
@@ -346,21 +347,24 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/User'
+              type: object
+              properties:
+                name:
+                  type: string
       responses:
         '200':
           description: Success
-      operationId: wedding.group.add_user_to_group
+      operationId: wedding.group.add_guest_to_group
       tags:
         - group
-  '/groups/{group_id}/remove_user/{user_id}':
+  '/groups/{group_id}/remove_guest/{guest_id}':
     parameters:
       - name: group_id
         in: path
         required: true
         schema:
           type: integer
-      - name: user_id
+      - name: guest_id
         in: path
         required: true
         schema:
@@ -370,8 +374,8 @@ paths:
         '200':
           description: Success
         '404':
-          description: User not found in group
-      operationId: wedding.group.remove_user_from_group
+          description: Guest not found in group
+      operationId: wedding.group.remove_guest_from_group
       tags:
         - group
   /profile/all:
@@ -565,16 +569,18 @@ components:
           type: array
           readOnly: true
           items:
-            oneOf:
-              - $ref: '#/components/schemas/User'
-              - $ref: '#/components/schemas/Guest'
+            $ref: '#/components/schemas/Guest'
         invitation:
           $ref: '#/components/schemas/Invitation'
     Guest:
       type: object
       properties:
+        id:
+          type: integer
         name:
           type: string
+        user:
+          $ref: '#/components/schemas/User'
     Invitation:
       type: object
       properties:
