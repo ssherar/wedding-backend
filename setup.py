@@ -5,7 +5,9 @@ deps = [
     "sqlalchemy",
     "flask-sqlalchemy",
     "Flask-Migrate",
-    "connexion"
+    'flask-script',
+    'flask-bcrypt',
+    "connexion",
     "pyjwt",
 ]
 
