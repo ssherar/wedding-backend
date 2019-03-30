@@ -9,6 +9,7 @@ from flask_bcrypt import Bcrypt
 from itsdangerous import URLSafeTimedSerializer
 
 from sqlalchemy.ext.hybrid import hybrid_property
+from sqlalchemy.orm import backref
 
 from .config import key
 
@@ -50,8 +51,6 @@ class User(db.Model):
     password_recovery_code = db.Column(db.String(256), nullable=True)
     password_recovery_gendate = db.Column(db.DateTime, nullable=True)
 
-    invitation_group_id = db.Column(db.Integer, db.ForeignKey("invitation_group.id"))
-
     def __repr__(self):
         return ("<{} name={} email{}>").format(
             self.__class__.__name__, self.fullname, self.email
@@ -69,10 +68,6 @@ class User(db.Model):
 
     def check_password(self, password):
         return flask_bcrypt.check_password_hash(self.password_hash, password)
-
-    @property
-    def invitation(self):
-        return self.invitation_group.invitation
 
     @hybrid_property
     def fullname(self):
@@ -165,8 +160,12 @@ class User(db.Model):
         self.password_recovery_code = code
         self.password_recovery_gendate = datetime.datetime.now()
         db.session.commit()
-    
+
     def dump(self):
+        if self.associated_guest is not None:
+            group_name = self.associated_guest.invitation_group.friendly_name
+        else:
+            group_name = None
         return {
             "id": self.id,
             "email": self.email,
@@ -174,7 +173,7 @@ class User(db.Model):
             "lastname": self.lastname,
             "fullname": self.fullname,
             "admin": self.admin,
-            "group_name": self.invitation_group.friendly_name
+            "group_name": group_name
         }
 
 
@@ -192,8 +191,8 @@ class Invitation(db.Model):
 
     @property
     def users(self):
-        return self.invitation_group.users
-    
+        return self.invitation_group.guests
+
     def dump(self):
         return {
             'type': str(self.invitation_type),
@@ -209,11 +208,10 @@ class InvitationGroup(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     friendly_name = db.Column(db.String(255), nullable=False, unique=True)
     group_code = db.Column(db.String(16), nullable=False)
-    users = db.relationship("User", backref="invitation_group")
     invitation = db.relationship(
         "Invitation", backref="invitation_group", uselist=False, cascade="all,delete"
     )
-    guests = db.relationship("Guest")
+    guests = db.relationship("Guest", backref="invitation_group")
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -236,7 +234,8 @@ class Guest(db.Model):
     name = db.Column(db.String(255), nullable=False)
     group_id = db.Column(db.Integer, db.ForeignKey("invitation_group.id"))
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)
-    user = db.relationship("User")
+
+    user = db.relationship("User", backref=backref("associated_guest", uselist=False))
 
     def dump(self):
         rv = {

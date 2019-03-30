@@ -5,7 +5,7 @@ from .utils import admin_required, fail, success
 
 
 @admin_required
-def all_groups(user: User, *args) -> (List[Dict[str, str]], 200) :
+def all_groups(user: User, *args) -> (List[Dict[str, str]], 200):
     return [g.dump() for g in InvitationGroup.query.all()], 200
 
 
@@ -29,12 +29,17 @@ def create_group(body, user: User, *args):
 def find_by_registration_code(code, *args):
     group = InvitationGroup.query.filter_by(group_code=code).first()
     if group is None:
-        return fail(f"Group with invitation code '{code}' doesn't exist. Please check and try again"), 404
+        return (
+            fail(
+                f"Group with invitation code '{code}' doesn't exist. Please check and try again"
+            ),
+            404,
+        )
     else:
         return {
             "id": group.id,
             "name": group.friendly_name,
-            "registration_code": group.group_code
+            "registration_code": group.group_code,
         }
 
 
@@ -60,9 +65,7 @@ def patch_group(group_id, body, user: User, *args):
     if inv_payload is not None:
         invitation = group.invitation
         invitation.response = inv_payload.get("response", invitation.response)
-        invitation.invitation_type = inv_payload.get(
-            "type", invitation.invitation_type
-        )
+        invitation.invitation_type = inv_payload.get("type", invitation.invitation_type)
         invitation.requirements = inv_payload.get(
             "requirements", invitation.requirements
         )
@@ -91,11 +94,11 @@ def add_guest_to_group(group_id, body, user: User, *args):
     ig = InvitationGroup.query.get(group_id)
     if ig is None:
         return fail(f"Group '{group_id}' does not exist"), 404
-    
+
     guest_name = body.get("name", None)
     if not guest_name:
         return fail("A guest name is requierd")
-    
+
     guest = Guest(name=guest_name)
     ig.guests.append(guest)
     db.session.commit()
@@ -108,12 +111,61 @@ def remove_guest_from_group(group_id, guest_id, user: User, *args):
     ig = InvitationGroup.query.get(group_id)
     if ig is None:
         return fail(f"Group '{group_id}' does not exist"), 404
-    
+
     guest = Guest.query.get(guest_id)
     if guest is None:
         return fail(f"Guest with id '{guest_id}' does not exist"), 404
-    
+
     db.session.delete(guest)
     db.session.commit()
 
     return success("Guest has been deleted"), 200
+
+
+@admin_required
+def relate_user_and_guest(group_id, body, user: User, *args):
+    guest_id = body.get("guest_id")
+    user_id = body.get("user_id")
+    ig = InvitationGroup.query.get(group_id)
+    if ig is None:
+        return fail(f"Group '{group_id}' does not exist"), 404
+
+    guest: Guest = Guest.query.get(guest_id)
+    if guest is None:
+        return fail(f"Guest with id '{guest_id}' does not exist"), 404
+
+    user = User.query.get(user_id)
+    if user is None:
+        return fail(f"User with id '{user_id}' does not exist"), 404
+
+    guest.user = user
+    db.session.commit()
+    return (
+        success(f"{user.fullname} has been related to the guestname {guest.name}"),
+        200,
+    )
+
+
+@admin_required
+def remove_relation_from_guest(group_id, body, user: User, *args):
+    guest_id = body.get("guest_id")
+    ig = InvitationGroup.query.get(group_id)
+    if ig is None:
+        return fail(f"Group '{group_id}' does not exist"), 404
+
+    guest: Guest = Guest.query.get(guest_id)
+    if guest is None:
+        return fail(f"Guest with id '{guest_id}' does not exist"), 404
+
+    fullname = guest.user.fullname
+
+    guest.user = None
+    db.session.commit()
+
+    return (
+        success(
+            f"The relationship between user {fullname} and guest {guest.name} as been removed"
+        ),
+        200,
+    )
+

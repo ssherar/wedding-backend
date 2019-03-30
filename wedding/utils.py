@@ -9,9 +9,11 @@ def admin_required(f):
     @functools.wraps(f)
     def inner(*args, **kwargs):
         user: User = kwargs.get("user")
-        if user.admin:
+        if user is not None and user.admin:
             return f(*args, **kwargs)
-        raise ProblemException(403, "Unauthorized", "You are not authorized to visit this page")
+        raise ProblemException(
+            403, "Unauthorized", "You are not authorized to visit this page"
+        )
 
     return inner
 
@@ -20,11 +22,7 @@ Message = Dict[str, str]
 
 
 def _message(status: str, message: str, **kwargs) -> Message:
-    return {
-        **kwargs,
-        "status": status,
-        "message": message
-    }
+    return {**kwargs, "status": status, "message": message}
 
 
 def success(message: str, **kwargs) -> Message:

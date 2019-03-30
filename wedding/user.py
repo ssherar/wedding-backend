@@ -30,8 +30,13 @@ def patch_me(body: Dict[str, str], user: User) -> (Message, int):
     return success("User profile updated successfully"), 200
 
 
-def find_user():
-    pass
+def find_user(q: str, orphaned: bool):
+    query = User.query.filter(User.fullname.like(f"%{q}%"))
+    a = query.all()
+    print(a[0].associated_guest)
+    if orphaned:
+        a = [u for u in a if u.associated_guest is None]
+    return [u.dump() for u in a]
 
 
 @admin_required
