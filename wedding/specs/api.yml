@@ -591,6 +591,8 @@ components:
           type: string
           format: password
           writeOnly: true
+        guest_id:
+          type: integer
         registration_code:
           type: string
           pattern: '^\d{3}-\d{3}-\d{3}$'
@@ -600,6 +602,7 @@ components:
         - lastname
         - password
         - registration_code
+        - guest_id
     UserLogin:
       type: object
       properties:

@@ -36,10 +36,12 @@ def find_by_registration_code(code, *args):
             404,
         )
     else:
+        available_guests = [g.dump() for g in group.guests if g.user is None]
         return {
             "id": group.id,
             "name": group.friendly_name,
             "registration_code": group.group_code,
+            "guests": available_guests,
         }
 
 

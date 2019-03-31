@@ -3,7 +3,7 @@ from typing import Dict
 from datetime import datetime
 
 from connexion.exceptions import ProblemException
-from .models import db, Token, User, InvitationGroup
+from .models import db, Token, User, InvitationGroup, Guest
 from .utils import success, fail, info, Message
 
 
@@ -32,7 +32,12 @@ def forgotten_password(body: Dict[str, str], user: User = None) -> (Message, int
     if user is not None:
         user.generate_recovery_code()
         #  Send email!
-    return info("An email has been sent to the email associated to this user if it exists. Please check your inbox"), 200
+    return (
+        info(
+            "An email has been sent to the email associated to this user if it exists. Please check your inbox"
+        ),
+        200,
+    )
 
 
 def login(body: Dict[str, str], user: User = None) -> (Message, int):
@@ -47,8 +52,8 @@ def login(body: Dict[str, str], user: User = None) -> (Message, int):
     :param user: The user calling the command, normally `None` and will be overwritten
     :return: A `Message` type and the HTTP status code (404 or 200)
     """
-    email: str = body.get('email', None)
-    password: str = body.get('password', None)
+    email: str = body.get("email", None)
+    password: str = body.get("password", None)
 
     if email is None or password is None:
         return fail("Email/Password combo incorrect"), 404
@@ -67,18 +72,19 @@ def login(body: Dict[str, str], user: User = None) -> (Message, int):
         return fail("Email/Password combo incorrect"), 404
 
 
-def logout(body: Dict[str, str] , user: User = None, token_info=None) -> (Message, int):
+def logout(body: Dict[str, str], user: User = None, token_info=None) -> (Message, int):
     token: str = token_info.get("token")
     Token.revoke(token)
 
     return success("Logged out successfully!"), 200
 
 
-def register_user(body: Dict[str, str] , user: User = None) -> (Message, int):
+def register_user(body: Dict[str, str], user: User = None) -> (Message, int):
     email = body.get("email", None)
     firstname = body.get("firstname", None)
     lastname = body.get("lastname", None)
     password = body.get("password", None)
+    guest_id = body.get("guest_id", None)
     registration_code = body.get("registration_code", None)
 
     if registration_code is None:
@@ -89,24 +95,33 @@ def register_user(body: Dict[str, str] , user: User = None) -> (Message, int):
         return fail("Firstname and Lastname is required"), 400
     if password is None:
         return fail("Password is required"), 400
+    if guest_id is None:
+        return fail("The guest id is required"), 400
 
     ig = InvitationGroup.query.filter_by(group_code=registration_code).first()
     if not ig:
-        return fail("The registration code entered is incorrect"),
-    
+        return fail("The registration code entered is incorrect"), 400
+
+    guest = Guest.query.get(guest_id)
+    if not guest:
+        return fail("The guest you chosen doesn't exist"), 400
+
     user = User.query.filter_by(email=email).first()
     if user:
-        return fail(f"The email adddress '{email}' is already registered to an account"), 409
-    
+        return (
+            fail(f"The email adddress '{email}' is already registered to an account"),
+            409,
+        )
+
     new_user = User(
         email=email,
         password=password,
         firstname=firstname,
         lastname=lastname,
-        registered_on=datetime.now()
+        registered_on=datetime.now(),
     )
 
-    new_user.invitation_group = ig
+    guest.user = new_user
     new_user.untrust_email()
 
     db.session.add(new_user)
@@ -131,19 +146,22 @@ def reset_password(body: Dict[str, str], user: User = None) -> (Message, int):
 
     user.password = password
     db.session.commit()
-    return success("Password has been updated successfully. Please try and login again"), 200
+    return (
+        success("Password has been updated successfully. Please try and login again"),
+        200,
+    )
 
 
 def verify_user(body: Dict[str, str], user: User = None) -> (Message, int):
     code = body.get("verification_code", None)
     if code is None:
         return fail("verification code was not provided"), 404
-    
+
     try:
         User.validate_email_code(code)
     except Exception as e:
         return fail(str(e)), 400
-    
+
     return success("Your account has been successfully verified. Please login"), 200
 
 
@@ -157,9 +175,6 @@ def check_token(token: str, required_scopes=None) -> any:
     """
     try:
         user: User = User.validate_token(token)
-        return {
-            'sub': user,
-            'token': token
-        }
+        return {"sub": user, "token": token}
     except ProblemException as e:
         raise e
