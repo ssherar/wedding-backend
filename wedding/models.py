@@ -35,6 +35,15 @@ class InvitationType(enum.Enum):
         return self.name
 
 
+class MenuCourse(enum.Enum):
+    STARTER = 0
+    MAIN = 1
+    DESERT = 2
+
+    def __str__(self):
+        return self.name
+
+
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     email = db.Column(db.String(255), unique=True, nullable=False)
@@ -246,6 +255,42 @@ class Guest(db.Model):
         if self.user:
             rv["user"] = self.user.dump()
         return rv
+
+
+class MenuItem(db.Model):
+    __tablename__ = 'menu_items'
+    id = db.Column(db.Integer, primary_key=True)
+    course = db.Column(db.Enum(MenuCourse), nullable=False)
+    description = db.Column(db.String(512), nullable=False)
+    vegetarian = db.Column(db.Boolean, nullable=False, default=False)
+    gluten_free = db.Column(db.Boolean, nullable=False, default=False)
+    additional_info = db.Column(db.String(256), nullable=True)
+
+    def dump(self):
+        return {
+            'id': self.id,
+            'course': str(self.course),
+            'description': self.description,
+            'vegetarian': self.vegetarian,
+            'gluten_free': self.gluten_free,
+            'additional_info': self.additional_info
+        }
+
+
+class GuestChoice(db.Model):
+    __tablename__ = "guest_choices"
+    id = db.Column(db.Integer, primary_key=True)
+
+    guest_id = db.Column(db.Integer, db.ForeignKey('guests.id'))
+    guest = db.relationship('Guest', backref=backref('menu_choice', uselist=False))
+
+    starter_id = db.Column(db.Integer, db.ForeignKey('menu_items.id'))
+    main_id = db.Column(db.Integer, db.ForeignKey('menu_items.id'))
+    desert_id = db.Column(db.Integer, db.ForeignKey('menu_items.id'))
+
+    starter = db.relationship('MenuItem', foreign_keys=[starter_id])
+    main = db.relationship('MenuItem', foreign_keys=[main_id])
+    desert = db.relationship('MenuItem', foreign_keys=[desert_id])
 
 
 class Token(db.Model):
