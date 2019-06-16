@@ -194,7 +194,7 @@ class User(db.Model):
             "lastname": self.lastname,
             "fullname": self.fullname,
             "admin": self.admin,
-            "group_name": group_name
+            "group_name": group_name,
         }
 
 
@@ -204,6 +204,7 @@ class Invitation(db.Model):
     response = db.Column(
         db.Enum(ResponseType), nullable=False, default=ResponseType.NO_RESPONSE
     )
+    staying_in_house = db.Column(db.Boolean, nullable=True)
     requirements = db.Column(db.String(1000))
     plus_one = db.Column(db.Boolean, nullable=False, default=False)
     plus_one_name = db.Column(db.String(256), nullable=True)
@@ -216,12 +217,13 @@ class Invitation(db.Model):
 
     def dump(self):
         return {
-            'type': str(self.invitation_type),
-            'response': str(self.response),
-            'requirements': self.requirements,
-            'plus_one': self.plus_one,
-            'plus_one_name': self.plus_one_name,
-            'locked': self.locked
+            "type": str(self.invitation_type),
+            "response": str(self.response),
+            "requirements": self.requirements,
+            "plus_one": self.plus_one,
+            "plus_one_name": self.plus_one_name,
+            "staying_in_house": self.staying_in_house,
+            "locked": self.locked,
         }
 
 
@@ -237,7 +239,7 @@ class InvitationGroup(db.Model):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.invitation = Invitation()
-    
+
     def dump(self):
         rv = {
             "id": self.id,
