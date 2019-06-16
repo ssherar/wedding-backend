@@ -455,7 +455,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/Invitation"
+              $ref: "#/components/schemas/InvitationGroup"
       responses:
         "200":
           description: Success
@@ -469,7 +469,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Invitation"
+                $ref: "#/components/schemas/InvitationGroup"
       operationId: wedding.user.get_invitation
       tags:
         - user
@@ -753,6 +753,14 @@ components:
           type: string
         user:
           $ref: "#/components/schemas/User"
+        coming:
+          type: boolean
+        first_course:
+          type: integer
+        main_course:
+          type: integer
+        desert:
+          type: integer
     Invitation:
       type: object
       properties:

@@ -241,6 +241,12 @@ class Guest(db.Model):
     __tablename__ = 'guests'
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(255), nullable=False)
+    is_coming = db.Column(db.Boolean, nullable=True)
+    first_course = db.Column(db.Integer, db.ForeignKey('menu_items.id'), nullable=True)
+    main_course = db.Column(db.Integer, db.ForeignKey('menu_items.id'), nullable=True)
+    desert_course = db.Column(db.Integer, db.ForeignKey('menu_items.id'), nullable=True)
+
+
     group_id = db.Column(db.Integer, db.ForeignKey("invitation_group.id"))
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)
 
@@ -250,7 +256,11 @@ class Guest(db.Model):
         rv = {
             'id': self.id,
             'name': self.name,
-            'user': None
+            'user': None,
+            'is_coming': self.is_coming,
+            "first_course": self.first_course,
+            "main_course": self.main_course,
+            "desert_course": self.desert_course
         }
         if self.user:
             rv["user"] = self.user.dump()

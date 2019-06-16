@@ -14,8 +14,8 @@ def submit_invitation():
     pass
 
 
-def get_invitation():
-    pass
+def get_invitation(user: User, *args) -> (Dict[str, str], int):
+    return user.associated_guest.invitation_group.dump(), 200
 
 
 def get_me(user: User, *args) -> (Dict[str, str], int):
