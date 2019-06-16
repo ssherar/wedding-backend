@@ -731,7 +731,7 @@ components:
       properties:
         id:
           type: integer
-          readOnly: true
+          #readOnly: true
         name:
           type: string
         code:
@@ -739,7 +739,7 @@ components:
           format: '^\d{3}-\d{3}-\d{3}$'
         guests:
           type: array
-          readOnly: true
+          #readOnly: true
           items:
             $ref: "#/components/schemas/Guest"
         invitation:
@@ -783,6 +783,8 @@ components:
         plus_one_name:
           type: string
         locked:
+          type: boolean
+        staying_in_house:
           type: boolean
         group_name:
           type: string
