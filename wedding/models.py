@@ -35,6 +35,15 @@ class InvitationType(enum.Enum):
         return self.name
 
 
+class MenuCourse(enum.Enum):
+    STARTER = 0
+    MAIN = 1
+    DESERT = 2
+
+    def __str__(self):
+        return self.name
+
+
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     email = db.Column(db.String(255), unique=True, nullable=False)
@@ -98,15 +107,23 @@ class User(db.Model):
             payload = jwt.decode(auth_token, key)
             revoked_token = Token.check_token(auth_token)
             if revoked_token:
-                raise ProblemException(401, "Unauthorized", "Token has been revoked. Please log in again.")
+                raise ProblemException(
+                    401, "Unauthorized", "Token has been revoked. Please log in again."
+                )
             if payload["exp"] < int(datetime.datetime.utcnow().timestamp()):
-                raise ProblemException(401, "Unauthorized", "Token has expired. Please log in again")
+                raise ProblemException(
+                    401, "Unauthorized", "Token has expired. Please log in again"
+                )
             email = payload["sub"]
             return (cls.query.filter_by(email=email)).first()
         except jwt.ExpiredSignatureError:
-            raise ProblemException(401, "Unauthorized", "Signature expired. Please log in again.")
+            raise ProblemException(
+                401, "Unauthorized", "Signature expired. Please log in again."
+            )
         except jwt.InvalidTokenError:
-            raise ProblemException(401, "Unauthorized", "Invalid token. Please log in again.")
+            raise ProblemException(
+                401, "Unauthorized", "Invalid token. Please log in again."
+            )
 
     @classmethod
     def validate_email_code(cls, code):
@@ -140,11 +157,15 @@ class User(db.Model):
         try:
             email = serializer.loads(code, max_age=current_app.config["EMAIL_EXP"])
         except Exception:
-            raise Exception("Code has expired. Please try and reset your password again")
+            raise Exception(
+                "Code has expired. Please try and reset your password again"
+            )
 
         user = cls.query.filter_by(email=email, password_recovery_code=code).first()
         if user is None:
-            raise Exception("Code is not valid. Please try and reset your password again")
+            raise Exception(
+                "Code is not valid. Please try and reset your password again"
+            )
 
         user.password_recovery_code = None
         user.password_recovery_gendate = None
@@ -173,7 +194,7 @@ class User(db.Model):
             "lastname": self.lastname,
             "fullname": self.fullname,
             "admin": self.admin,
-            "group_name": group_name
+            "group_name": group_name,
         }
 
 
@@ -183,6 +204,7 @@ class Invitation(db.Model):
     response = db.Column(
         db.Enum(ResponseType), nullable=False, default=ResponseType.NO_RESPONSE
     )
+    staying_in_house = db.Column(db.Boolean, nullable=True)
     requirements = db.Column(db.String(1000))
     plus_one = db.Column(db.Boolean, nullable=False, default=False)
     plus_one_name = db.Column(db.String(256), nullable=True)
@@ -195,12 +217,13 @@ class Invitation(db.Model):
 
     def dump(self):
         return {
-            'type': str(self.invitation_type),
-            'response': str(self.response),
-            'requirements': self.requirements,
-            'plus_one': self.plus_one,
-            'plus_one_name': self.plus_one_name,
-            'locked': self.locked
+            "type": str(self.invitation_type),
+            "response": str(self.response),
+            "requirements": self.requirements,
+            "plus_one": self.plus_one,
+            "plus_one_name": self.plus_one_name,
+            "staying_in_house": self.staying_in_house,
+            "locked": self.locked,
         }
 
 
@@ -216,36 +239,81 @@ class InvitationGroup(db.Model):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.invitation = Invitation()
-    
+
     def dump(self):
         rv = {
-            'id': self.id,
-            'code': self.group_code,
-            'name': self.friendly_name,
-            'invitation': self.invitation.dump(),
-            'guests': [g.dump() for g in self.guests]
+            "id": self.id,
+            "code": self.group_code,
+            "name": self.friendly_name,
+            "invitation": self.invitation.dump(),
+            "guests": [g.dump() for g in self.guests],
         }
         return rv
 
 
 class Guest(db.Model):
-    __tablename__ = 'guests'
+    __tablename__ = "guests"
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(255), nullable=False)
+    is_coming = db.Column(db.Boolean, nullable=True)
+    first_course = db.Column(db.Integer, db.ForeignKey("menu_items.id"), nullable=True)
+    main_course = db.Column(db.Integer, db.ForeignKey("menu_items.id"), nullable=True)
+    desert_course = db.Column(db.Integer, db.ForeignKey("menu_items.id"), nullable=True)
+
     group_id = db.Column(db.Integer, db.ForeignKey("invitation_group.id"))
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)
+    user_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=True)
 
     user = db.relationship("User", backref=backref("associated_guest", uselist=False))
 
     def dump(self):
         rv = {
-            'id': self.id,
-            'name': self.name,
-            'user': None
+            "id": self.id,
+            "name": self.name,
+            "user": None,
+            "is_coming": self.is_coming,
+            "first_course": self.first_course,
+            "main_course": self.main_course,
+            "desert_course": self.desert_course,
         }
         if self.user:
             rv["user"] = self.user.dump()
         return rv
+
+
+class MenuItem(db.Model):
+    __tablename__ = "menu_items"
+    id = db.Column(db.Integer, primary_key=True)
+    course = db.Column(db.Enum(MenuCourse), nullable=False)
+    description = db.Column(db.String(512), nullable=False)
+    vegetarian = db.Column(db.Boolean, nullable=False, default=False)
+    gluten_free = db.Column(db.Boolean, nullable=False, default=False)
+    additional_info = db.Column(db.String(256), nullable=True)
+
+    def dump(self):
+        return {
+            "id": self.id,
+            "course": str(self.course),
+            "description": self.description,
+            "vegetarian": self.vegetarian,
+            "gluten_free": self.gluten_free,
+            "additional_info": self.additional_info,
+        }
+
+
+class GuestChoice(db.Model):
+    __tablename__ = "guest_choices"
+    id = db.Column(db.Integer, primary_key=True)
+
+    guest_id = db.Column(db.Integer, db.ForeignKey("guests.id"))
+    guest = db.relationship("Guest", backref=backref("menu_choice", uselist=False))
+
+    starter_id = db.Column(db.Integer, db.ForeignKey("menu_items.id"))
+    main_id = db.Column(db.Integer, db.ForeignKey("menu_items.id"))
+    desert_id = db.Column(db.Integer, db.ForeignKey("menu_items.id"))
+
+    starter = db.relationship("MenuItem", foreign_keys=[starter_id])
+    main = db.relationship("MenuItem", foreign_keys=[main_id])
+    desert = db.relationship("MenuItem", foreign_keys=[desert_id])
 
 
 class Token(db.Model):

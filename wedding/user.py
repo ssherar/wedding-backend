@@ -1,6 +1,7 @@
+from flask.json import dumps
 from typing import Dict, List
 
-from .models import db, User
+from .models import db, User, Invitation, Guest, ResponseType, InvitationType
 from .utils import admin_required, success, fail, Message
 
 
@@ -10,12 +11,46 @@ def all_users(user, *args) -> (List[Dict[str, str]], int):
     return [u.dump() for u in users], 200
 
 
-def submit_invitation():
+def submit_invitation(body: Dict[str, str], user: User, *args) -> (Message, int):
+    print(dumps(body, indent=4))
+    ig = user.associated_guest.invitation_group
+    invitation: Invitation = ig.invitation
+    guests: List[Guest] = ig.guests
+
+    if body["invitation"]["response"] == "DECLINED":
+        invitation.response = ResponseType.DECLINED
+        db.session.commit()
+        return success("Your response has been saved"), 200
+    else:
+        _process_invitation(invitation, body["invitation"])
+        _process_guests(guests, body["guests"])
+        db.session.commit()
+        return success("Your response has been saved"), 200
     pass
 
 
-def get_invitation():
-    pass
+def _process_invitation(invitation: Invitation, invData: Dict[str, str]):
+    invitation.response = ResponseType.CONFIRMED
+    invitation.requirements = invData["requirements"]
+    if Invitation.invitation_type == InvitationType.HOUSE:
+        invitation.staying_in_house = invData["staying_in_house"]
+    else:
+        invitation.staying_in_house = False
+
+
+def _process_guests(guests: List[Guest], guestData: List[Dict[str, str]]):
+    for gd in guestData:
+        guest: Guest = list(filter(lambda x: x.id == gd["id"], guests))[0]
+        guest.is_coming = gd["is_coming"]
+        if not gd["is_coming"]:
+            continue
+        guest.first_course = gd["first_course"]
+        guest.main_course = gd["main_course"]
+        guest.desert_course = gd["desert_course"]
+
+
+def get_invitation(user: User, *args) -> (Dict[str, str], int):
+    return user.associated_guest.invitation_group.dump(), 200
 
 
 def get_me(user: User, *args) -> (Dict[str, str], int):
