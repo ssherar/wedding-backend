@@ -107,15 +107,23 @@ class User(db.Model):
             payload = jwt.decode(auth_token, key)
             revoked_token = Token.check_token(auth_token)
             if revoked_token:
-                raise ProblemException(401, "Unauthorized", "Token has been revoked. Please log in again.")
+                raise ProblemException(
+                    401, "Unauthorized", "Token has been revoked. Please log in again."
+                )
             if payload["exp"] < int(datetime.datetime.utcnow().timestamp()):
-                raise ProblemException(401, "Unauthorized", "Token has expired. Please log in again")
+                raise ProblemException(
+                    401, "Unauthorized", "Token has expired. Please log in again"
+                )
             email = payload["sub"]
             return (cls.query.filter_by(email=email)).first()
         except jwt.ExpiredSignatureError:
-            raise ProblemException(401, "Unauthorized", "Signature expired. Please log in again.")
+            raise ProblemException(
+                401, "Unauthorized", "Signature expired. Please log in again."
+            )
         except jwt.InvalidTokenError:
-            raise ProblemException(401, "Unauthorized", "Invalid token. Please log in again.")
+            raise ProblemException(
+                401, "Unauthorized", "Invalid token. Please log in again."
+            )
 
     @classmethod
     def validate_email_code(cls, code):
@@ -149,11 +157,15 @@ class User(db.Model):
         try:
             email = serializer.loads(code, max_age=current_app.config["EMAIL_EXP"])
         except Exception:
-            raise Exception("Code has expired. Please try and reset your password again")
+            raise Exception(
+                "Code has expired. Please try and reset your password again"
+            )
 
         user = cls.query.filter_by(email=email, password_recovery_code=code).first()
         if user is None:
-            raise Exception("Code is not valid. Please try and reset your password again")
+            raise Exception(
+                "Code is not valid. Please try and reset your password again"
+            )
 
         user.password_recovery_code = None
         user.password_recovery_gendate = None
@@ -228,39 +240,38 @@ class InvitationGroup(db.Model):
     
     def dump(self):
         rv = {
-            'id': self.id,
-            'code': self.group_code,
-            'name': self.friendly_name,
-            'invitation': self.invitation.dump(),
-            'guests': [g.dump() for g in self.guests]
+            "id": self.id,
+            "code": self.group_code,
+            "name": self.friendly_name,
+            "invitation": self.invitation.dump(),
+            "guests": [g.dump() for g in self.guests],
         }
         return rv
 
 
 class Guest(db.Model):
-    __tablename__ = 'guests'
+    __tablename__ = "guests"
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(255), nullable=False)
     is_coming = db.Column(db.Boolean, nullable=True)
-    first_course = db.Column(db.Integer, db.ForeignKey('menu_items.id'), nullable=True)
-    main_course = db.Column(db.Integer, db.ForeignKey('menu_items.id'), nullable=True)
-    desert_course = db.Column(db.Integer, db.ForeignKey('menu_items.id'), nullable=True)
-
+    first_course = db.Column(db.Integer, db.ForeignKey("menu_items.id"), nullable=True)
+    main_course = db.Column(db.Integer, db.ForeignKey("menu_items.id"), nullable=True)
+    desert_course = db.Column(db.Integer, db.ForeignKey("menu_items.id"), nullable=True)
 
     group_id = db.Column(db.Integer, db.ForeignKey("invitation_group.id"))
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)
+    user_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=True)
 
     user = db.relationship("User", backref=backref("associated_guest", uselist=False))
 
     def dump(self):
         rv = {
-            'id': self.id,
-            'name': self.name,
-            'user': None,
-            'is_coming': self.is_coming,
+            "id": self.id,
+            "name": self.name,
+            "user": None,
+            "is_coming": self.is_coming,
             "first_course": self.first_course,
             "main_course": self.main_course,
-            "desert_course": self.desert_course
+            "desert_course": self.desert_course,
         }
         if self.user:
             rv["user"] = self.user.dump()
@@ -268,7 +279,7 @@ class Guest(db.Model):
 
 
 class MenuItem(db.Model):
-    __tablename__ = 'menu_items'
+    __tablename__ = "menu_items"
     id = db.Column(db.Integer, primary_key=True)
     course = db.Column(db.Enum(MenuCourse), nullable=False)
     description = db.Column(db.String(512), nullable=False)
@@ -278,12 +289,12 @@ class MenuItem(db.Model):
 
     def dump(self):
         return {
-            'id': self.id,
-            'course': str(self.course),
-            'description': self.description,
-            'vegetarian': self.vegetarian,
-            'gluten_free': self.gluten_free,
-            'additional_info': self.additional_info
+            "id": self.id,
+            "course": str(self.course),
+            "description": self.description,
+            "vegetarian": self.vegetarian,
+            "gluten_free": self.gluten_free,
+            "additional_info": self.additional_info,
         }
 
 
@@ -291,16 +302,16 @@ class GuestChoice(db.Model):
     __tablename__ = "guest_choices"
     id = db.Column(db.Integer, primary_key=True)
 
-    guest_id = db.Column(db.Integer, db.ForeignKey('guests.id'))
-    guest = db.relationship('Guest', backref=backref('menu_choice', uselist=False))
+    guest_id = db.Column(db.Integer, db.ForeignKey("guests.id"))
+    guest = db.relationship("Guest", backref=backref("menu_choice", uselist=False))
 
-    starter_id = db.Column(db.Integer, db.ForeignKey('menu_items.id'))
-    main_id = db.Column(db.Integer, db.ForeignKey('menu_items.id'))
-    desert_id = db.Column(db.Integer, db.ForeignKey('menu_items.id'))
+    starter_id = db.Column(db.Integer, db.ForeignKey("menu_items.id"))
+    main_id = db.Column(db.Integer, db.ForeignKey("menu_items.id"))
+    desert_id = db.Column(db.Integer, db.ForeignKey("menu_items.id"))
 
-    starter = db.relationship('MenuItem', foreign_keys=[starter_id])
-    main = db.relationship('MenuItem', foreign_keys=[main_id])
-    desert = db.relationship('MenuItem', foreign_keys=[desert_id])
+    starter = db.relationship("MenuItem", foreign_keys=[starter_id])
+    main = db.relationship("MenuItem", foreign_keys=[main_id])
+    desert = db.relationship("MenuItem", foreign_keys=[desert_id])
 
 
 class Token(db.Model):
