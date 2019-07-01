@@ -12,7 +12,6 @@ def all_users(user, *args) -> (List[Dict[str, str]], int):
 
 
 def submit_invitation(body: Dict[str, str], user: User, *args) -> (Message, int):
-    print(dumps(body, indent=4))
     ig = user.associated_guest.invitation_group
     invitation: Invitation = ig.invitation
     guests: List[Guest] = ig.guests
