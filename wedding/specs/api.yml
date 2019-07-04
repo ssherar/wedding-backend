@@ -1,11 +1,11 @@
 openapi: 3.0.0
 info:
   title: Wedding API
-  version: "1.0"
+  version: '1.0'
   description: Wedding API
 servers:
-  - url: "http://localhost:5000/api"
-    description: "Local server"
+  - url: 'http://localhost:5000/api'
+    description: 'Local server'
 security:
   - jwt: []
 tags:
@@ -17,6 +17,8 @@ tags:
     description: Invitation Group related operations
   - name: menu
     description: Menu related operations
+  - name: guest
+    description: Guest rlated operations
 paths:
   /auth/changepassword:
     post:
@@ -30,18 +32,18 @@ paths:
                   type: string
                   format: password
       responses:
-        "200":
+        '200':
           description: Password changed successfully
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Message"
-        "404":
+                $ref: '#/components/schemas/Message'
+        '404':
           description: Unable to update password
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Message"
+                $ref: '#/components/schemas/Message'
       operationId: wedding.auth.change_password
       tags:
         - auth
@@ -58,15 +60,15 @@ paths:
                   format: email
 
       responses:
-        "200":
+        '200':
           description: Success
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Message"
+                $ref: '#/components/schemas/Message'
               example:
-                status: "INFO"
-                message: "An email has been sent to the email associated to this user. Please check"
+                status: 'INFO'
+                message: 'An email has been sent to the email associated to this user. Please check'
       operationId: wedding.auth.forgotten_password
       security: []
       tags:
@@ -77,24 +79,24 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/UserLogin"
+              $ref: '#/components/schemas/UserLogin'
       responses:
-        "200":
+        '200':
           description: Logged in successfully
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Message"
+                $ref: '#/components/schemas/Message'
               example:
                 status: SUCCESS
                 message: Logged in successfully
-                token: "eyJhb..."
-        "404":
+                token: 'eyJhb...'
+        '404':
           description: User/Password combo incorrect
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Message"
+                $ref: '#/components/schemas/Message'
               example:
                 status: FAIL
                 message: Email/Password combo incorrect
@@ -105,21 +107,21 @@ paths:
   /auth/logout:
     post:
       responses:
-        "200":
+        '200':
           description: User logged out successfully
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Message"
+                $ref: '#/components/schemas/Message'
               example:
                 status: SUCCESS
                 message: Logged out successfully
-        "404":
+        '404':
           description: User not logged in
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Message"
+                $ref: '#/components/schemas/Message'
               example:
                 status: FAIL
                 message: User not logged in
@@ -132,41 +134,41 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/UserRegistration"
+              $ref: '#/components/schemas/UserRegistration'
       responses:
-        "201":
+        '201':
           description: User successfully created.
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Message"
+                $ref: '#/components/schemas/Message'
               example:
                 status: SUCCESS
                 message: User successfully created. Please login.
-        "400":
+        '400':
           description: Required information was not provided
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Message"
+                $ref: '#/components/schemas/Message'
               example:
                 status: FAIL
                 message: Email is required
-        "404":
+        '404':
           description: Registration code is not found
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Message"
+                $ref: '#/components/schemas/Message'
               example:
                 status: FAIL
                 message: The registration code entered is incorrect
-        "409":
+        '409':
           description: User already exists
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Message"
+                $ref: '#/components/schemas/Message'
               example:
                 status: FAIL
                 message: User already exists with that email address
@@ -191,9 +193,9 @@ paths:
                 - reset_code
                 - password
       responses:
-        "200":
+        '200':
           description: Success
-        "404":
+        '404':
           description: Code/Password was not provided OR code is invalid
       operationId: wedding.auth.reset_password
       security: []
@@ -212,30 +214,30 @@ paths:
               required:
                 - verification_code
       responses:
-        "200":
+        '200':
           description: Email was successfully verified
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Message"
+                $ref: '#/components/schemas/Message'
               example:
                 status: SUCCESS
                 message: Your email address was successfully verified. Please login
-        "400":
+        '400':
           description: Email code has expired
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Message"
+                $ref: '#/components/schemas/Message'
               example:
                 status: FAIL
                 message: The verification code has expired. Please try again
-        "404":
+        '404':
           description: Email code was not provided
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Message"
+                $ref: '#/components/schemas/Message'
               example:
                 status: FAIL
                 message: The verification code was incorret
@@ -246,14 +248,14 @@ paths:
   /groups/all:
     get:
       responses:
-        "200":
+        '200':
           description: Success
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: "#/components/schemas/InvitationGroup"
+                  $ref: '#/components/schemas/InvitationGroup'
       operationId: wedding.group.all_groups
       tags:
         - group
@@ -263,14 +265,14 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/InvitationGroup"
+              $ref: '#/components/schemas/InvitationGroup'
       responses:
-        "200":
+        '200':
           description: Success
       operationId: wedding.group.create_group
       tags:
         - group
-  "/groups/find/{code}":
+  '/groups/find/{code}':
     parameters:
       - name: code
         in: path
@@ -280,7 +282,7 @@ paths:
           pattern: '^\d{3}-\d{3}-\d{3}$'
     get:
       responses:
-        "200":
+        '200':
           description: Success
           content:
             application/json:
@@ -294,13 +296,13 @@ paths:
                   registration_code:
                     type: string
                     pattern: '^\d{3}-\d{3}-\d{3}$'
-        "404":
+        '404':
           description: Group not found
       operationId: wedding.group.find_by_registration_code
       security: []
       tags:
         - group
-  "/groups/{group_id}":
+  '/groups/{group_id}':
     parameters:
       - name: group_id
         in: path
@@ -309,7 +311,7 @@ paths:
           type: integer
     delete:
       responses:
-        "200":
+        '200':
           description: Success
       operationId: wedding.group.delete_group
       tags:
@@ -319,25 +321,25 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/InvitationGroup"
+              $ref: '#/components/schemas/InvitationGroup'
       responses:
-        "200":
+        '200':
           description: Success
       operationId: wedding.group.patch_group
       tags:
         - group
     get:
       responses:
-        "200":
+        '200':
           description: Success
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/InvitationGroup"
+                $ref: '#/components/schemas/InvitationGroup'
       operationId: wedding.group.get_group
       tags:
         - group
-  "/groups/{group_id}/add_guest":
+  '/groups/{group_id}/add_guest':
     parameters:
       - name: group_id
         in: path
@@ -354,12 +356,12 @@ paths:
                 name:
                   type: string
       responses:
-        "200":
+        '200':
           description: Success
       operationId: wedding.group.add_guest_to_group
       tags:
         - group
-  "/groups/{group_id}/remove_guest/{guest_id}":
+  '/groups/{group_id}/remove_guest/{guest_id}':
     parameters:
       - name: group_id
         in: path
@@ -373,14 +375,14 @@ paths:
           type: integer
     delete:
       responses:
-        "200":
+        '200':
           description: Success
-        "404":
+        '404':
           description: Guest not found in group
       operationId: wedding.group.remove_guest_from_group
       tags:
         - group
-  "/groups/{group_id}/associate_user_with_guest":
+  '/groups/{group_id}/associate_user_with_guest':
     parameters:
       - name: group_id
         in: path
@@ -402,14 +404,14 @@ paths:
                 - guest_id
                 - user_id
       responses:
-        "200":
+        '200':
           description: Success
-        "404":
+        '404':
           description: Group, User or Guest not found
       operationId: wedding.group.relate_user_and_guest
       tags:
         - group
-  "/groups/{group_id}/disassociate_user_with_guest":
+  '/groups/{group_id}/disassociate_user_with_guest':
     parameters:
       - name: group_id
         in: path
@@ -428,9 +430,9 @@ paths:
               required:
                 - guest_id
       responses:
-        "200":
+        '200':
           description: Success
-        "404":
+        '404':
           description: Group or Guest not found
       operationId: wedding.group.remove_relation_from_guest
       tags:
@@ -438,14 +440,14 @@ paths:
   /profile/all:
     get:
       responses:
-        "200":
+        '200':
           description: Success
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: "#/components/schemas/User"
+                  $ref: '#/components/schemas/User'
       operationId: wedding.user.all_users
       tags:
         - user
@@ -455,21 +457,21 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/InvitationGroup"
+              $ref: '#/components/schemas/InvitationGroup'
       responses:
-        "200":
+        '200':
           description: Success
       operationId: wedding.user.submit_invitation
       tags:
         - user
     get:
       responses:
-        "200":
+        '200':
           description: Success
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/InvitationGroup"
+                $ref: '#/components/schemas/InvitationGroup'
       operationId: wedding.user.get_invitation
       tags:
         - user
@@ -479,35 +481,35 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/User"
+              $ref: '#/components/schemas/User'
       responses:
-        "200":
+        '200':
           description: Success
       operationId: wedding.user.patch_me
       tags:
         - user
     get:
       responses:
-        "200":
+        '200':
           description: Success
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/User"
+                $ref: '#/components/schemas/User'
       operationId: wedding.user.get_me
       tags:
         - user
   /profile/search:
     get:
       responses:
-        "200":
+        '200':
           description: Success
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: "#/components/schemas/User"
+                  $ref: '#/components/schemas/User'
       operationId: wedding.user.find_user
       parameters:
         - in: query
@@ -522,7 +524,7 @@ paths:
             type: string
       tags:
         - user
-  "/profile/{user_id}":
+  '/profile/{user_id}':
     parameters:
       - name: user_id
         in: path
@@ -531,27 +533,27 @@ paths:
           type: integer
     delete:
       responses:
-        "200":
+        '200':
           description: Success
       operationId: wedding.user.delete_user
       tags:
         - user
     patch:
       responses:
-        "200":
+        '200':
           description: Success
       operationId: wedding.user.patch_user
       tags:
         - user
     get:
       responses:
-        "200":
+        '200':
           description: Success
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/User"
-        "404":
+                $ref: '#/components/schemas/User'
+        '404':
           description: User not found
       operationId: wedding.user.get_user
       tags:
@@ -559,14 +561,14 @@ paths:
   /menu/all:
     get:
       responses:
-        "200":
+        '200':
           description: Success
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: "#/components/schemas/MenuItem"
+                  $ref: '#/components/schemas/MenuItem'
       operationId: wedding.menu.get_all
       tags:
         - menu
@@ -579,18 +581,18 @@ paths:
           type: integer
     get:
       responses:
-        "200":
+        '200':
           description: Success
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/MenuItem"
-        "404":
+                $ref: '#/components/schemas/MenuItem'
+        '404':
           description: Not found
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Message"
+                $ref: '#/components/schemas/Message'
               example:
                 status: FAIL
                 message: Item not found
@@ -602,20 +604,20 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/MenuItem"
+              $ref: '#/components/schemas/MenuItem'
       responses:
-        "200":
+        '200':
           description: Success
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Message"
-        "400":
+                $ref: '#/components/schemas/Message'
+        '400':
           description: Fail
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Message"
+                $ref: '#/components/schemas/Message'
               example:
                 status: FAIL
                 message: Item not updated
@@ -624,18 +626,18 @@ paths:
         - menu
     delete:
       responses:
-        "200":
+        '200':
           description: Success
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Message"
-        "400":
+                $ref: '#/components/schemas/Message'
+        '400':
           description: Fail
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Message"
+                $ref: '#/components/schemas/Message'
               example:
                 status: FAIL
                 message: Item not deleted
@@ -649,26 +651,79 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/MenuItem"
+              $ref: '#/components/schemas/MenuItem'
       responses:
-        "200":
+        '200':
           description: Success
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Message"
-        "400":
+                $ref: '#/components/schemas/Message'
+        '400':
           description: Fail
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Message"
+                $ref: '#/components/schemas/Message'
               example:
                 status: FAIL
                 message: Item not created
       operationId: wedding.menu.create_item
       tags:
         - menu
+  /guest/{id}/menuchoices:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+    patch:
+      description: Update Menu Options for a guest
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                starter_id:
+                  type: number
+                main_id:
+                  type: number
+                desert_id:
+                  type: number
+              required:
+                - starter_id
+                - main_id
+                - desert_id
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Message'
+        '400':
+          description: Fail
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Message'
+              example:
+                status: FAIL
+                message: Item not updated
+        '401':
+          description: 'Selected ID is within a menu option (starter/main/desert)'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Message'
+              example:
+                status: FAIL
+                message: 'ID `2` is not a valid desert'
+      operationId: wedding.guest.update_menu_options
+      tags:
+        - guest
 components:
   schemas:
     User:
@@ -741,9 +796,9 @@ components:
           type: array
           #readOnly: true
           items:
-            $ref: "#/components/schemas/Guest"
+            $ref: '#/components/schemas/Guest'
         invitation:
-          $ref: "#/components/schemas/Invitation"
+          $ref: '#/components/schemas/Invitation'
     Guest:
       type: object
       properties:
@@ -752,7 +807,7 @@ components:
         name:
           type: string
         user:
-          $ref: "#/components/schemas/User"
+          $ref: '#/components/schemas/User'
         coming:
           type: boolean
         first_course:
