@@ -30,7 +30,7 @@ def submit_invitation(body: Dict[str, str], user: User, *args) -> (Message, int)
 
 def _process_invitation(invitation: Invitation, invData: Dict[str, str]):
     invitation.response = ResponseType.CONFIRMED
-    invitation.requirements = invData["requirements"]
+    invitation.requirements = invData.get("requirements", None)
     if invitation.invitation_type == InvitationType.HOUSE:
         invitation.staying_in_house = invData["staying_in_house"]
     else:
