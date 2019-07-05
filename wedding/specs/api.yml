@@ -724,6 +724,25 @@ paths:
       operationId: wedding.guest.update_menu_options
       tags:
         - guest
+  /guest/{id}:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+    patch:
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Guest'
+      responses:
+        '201':
+          description: 'OK'
+      operationId: wedding.guest.patch_guest
+      tags:
+        - guest
 components:
   schemas:
     User:
@@ -816,6 +835,7 @@ components:
           $ref: '#/components/schemas/User'
         coming:
           type: boolean
+          nullable: true
         first_course:
           type: integer
         main_course:
