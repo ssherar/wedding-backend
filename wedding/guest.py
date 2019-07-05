@@ -27,6 +27,7 @@ def patch_guest(body, id: int, user: User, *args) -> (Message, int):
     name = body.get("name", None)
     type_ = body.get("type", "ADULT")
     coming = body.get("coming", None)
+    plus_one = body.get("plus_one", False)
     starter_id = body.get("first_course", 0)
     main_id = body.get("main_course", 0)
     desert_id = body.get("desert", 0)
@@ -41,8 +42,10 @@ def patch_guest(body, id: int, user: User, *args) -> (Message, int):
 
     if name is not None:
         guest.name = name
+
     guest.type_ = type_
     guest.is_coming = coming
+    guest.plus_one = plus_one
 
     db.session.commit()
 
@@ -52,7 +55,7 @@ def patch_guest(body, id: int, user: User, *args) -> (Message, int):
 def _update_menu_choices(
     guest: Guest, starter_id: int, main_id: int, desert_id: int
 ) -> Message:
-    if starter_id > 0:
+    if starter_id is not None and starter_id > 0:
         starter = MenuItem.query.filter_by(
             course=MenuCourse.STARTER, id=starter_id
         ).first()
@@ -61,14 +64,14 @@ def _update_menu_choices(
         else:
             guest.first_course = starter_id
 
-    if main_id > 0:
+    if main_id is not None and main_id > 0:
         main = MenuItem.query.filter_by(course=MenuCourse.MAIN, id=main_id).first()
         if main is None:
             return fail(f"Main ID '{main_id}' is not a valid main course")
         else:
             guest.main_course = main_id
 
-    if desert_id > 0:
+    if desert_id is not None and desert_id > 0:
         desert = MenuItem.query.filter_by(
             course=MenuCourse.DESERT, id=desert_id
         ).first()

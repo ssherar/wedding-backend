@@ -836,12 +836,17 @@ components:
         coming:
           type: boolean
           nullable: true
+        plus_one:
+          type: boolean
         first_course:
           type: integer
+          nullable: true
         main_course:
           type: integer
+          nullable: true
         desert:
           type: integer
+          nullable: true
     Invitation:
       type: object
       properties:
@@ -858,10 +863,6 @@ components:
             - WEEKEND
             - DAY
         requirements:
-          type: string
-        plus_one:
-          type: boolean
-        plus_one_name:
           type: string
         locked:
           type: boolean

@@ -215,8 +215,7 @@ class Invitation(db.Model):
     )
     staying_in_house = db.Column(db.Boolean, nullable=True)
     requirements = db.Column(db.String(1000))
-    plus_one = db.Column(db.Boolean, nullable=False, default=False)
-    plus_one_name = db.Column(db.String(256), nullable=True)
+
     locked = db.Column(db.Boolean, nullable=False, default=False)
     invitation_group_id = db.Column(db.Integer, db.ForeignKey("invitation_group.id"))
 
@@ -229,8 +228,6 @@ class Invitation(db.Model):
             "type": str(self.invitation_type),
             "response": str(self.response),
             "requirements": self.requirements,
-            "plus_one": self.plus_one,
-            "plus_one_name": self.plus_one_name,
             "staying_in_house": self.staying_in_house,
             "locked": self.locked,
         }
@@ -266,6 +263,8 @@ class Guest(db.Model):
     name = db.Column(db.String(255), nullable=False)
     type_ = db.Column(db.Enum(GuestType), nullable=False, default=GuestType.ADULT)
     is_coming = db.Column(db.Boolean, nullable=True)
+    plus_one = db.Column(db.Boolean, nullable=False, default=False)
+
     first_course = db.Column(db.Integer, db.ForeignKey("menu_items.id"), nullable=True)
     main_course = db.Column(db.Integer, db.ForeignKey("menu_items.id"), nullable=True)
     desert_course = db.Column(db.Integer, db.ForeignKey("menu_items.id"), nullable=True)
@@ -282,6 +281,7 @@ class Guest(db.Model):
             "user": None,
             "type": self.type_.name,
             "is_coming": self.is_coming,
+            "plus_one": self.plus_one,
             "first_course": self.first_course,
             "main_course": self.main_course,
             "desert_course": self.desert_course,
