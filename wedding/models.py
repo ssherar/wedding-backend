@@ -44,6 +44,15 @@ class MenuCourse(enum.Enum):
         return self.name
 
 
+class GuestType(enum.Enum):
+    ADULT = 0
+    CHILD = 1
+    BABY = 2
+
+    def __str__(self):
+        return self.name
+
+
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     email = db.Column(db.String(255), unique=True, nullable=False)
@@ -255,6 +264,7 @@ class Guest(db.Model):
     __tablename__ = "guests"
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(255), nullable=False)
+    type_ = db.Column(db.Enum(GuestType), nullable=False, default=GuestType.ADULT)
     is_coming = db.Column(db.Boolean, nullable=True)
     first_course = db.Column(db.Integer, db.ForeignKey("menu_items.id"), nullable=True)
     main_course = db.Column(db.Integer, db.ForeignKey("menu_items.id"), nullable=True)
@@ -270,6 +280,7 @@ class Guest(db.Model):
             "id": self.id,
             "name": self.name,
             "user": None,
+            "type": self.type_.name,
             "is_coming": self.is_coming,
             "first_course": self.first_course,
             "main_course": self.main_course,

@@ -806,6 +806,12 @@ components:
           type: integer
         name:
           type: string
+        type:
+          type: string
+          enum:
+            - ADULT
+            - CHILD
+            - BABY
         user:
           $ref: '#/components/schemas/User'
         coming:
