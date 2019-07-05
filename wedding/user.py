@@ -43,6 +43,10 @@ def _process_guests(guests: List[Guest], guestData: List[Dict[str, str]]):
         guest.is_coming = gd["is_coming"]
         if not gd["is_coming"]:
             continue
+        
+        if guest.plus_one == True:
+            guest.name = gd['name']
+
         guest.first_course = gd["first_course"]
         guest.main_course = gd["main_course"]
         guest.desert_course = gd["desert_course"]
