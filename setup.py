@@ -9,6 +9,7 @@ deps = [
     'flask-bcrypt',
     "connexion",
     "pyjwt",
+    "boto3"
 ]
 
 setup(

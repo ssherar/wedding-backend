@@ -1,10 +1,16 @@
 from typing import Dict
 
 from datetime import datetime
+from flask import current_app
 
 from connexion.exceptions import ProblemException
 from .models import db, Token, User, InvitationGroup, Guest
 from .utils import success, fail, info, Message
+
+import boto3
+import json
+
+sesClient = boto3.client("ses")
 
 
 def change_password(body: Dict[str, str], user: User) -> (Message, int):
@@ -31,7 +37,8 @@ def forgotten_password(body: Dict[str, str], user: User = None) -> (Message, int
     user: User = User.query.filter_by(email=email).first()
     if user is not None:
         user.generate_recovery_code()
-        #  Send email!
+        if current_app.config.get("SEND_EMAIL"):
+            _send_recovery_code(user)
     return (
         info(
             "An email has been sent to the email associated to this user if it exists. Please check your inbox"
@@ -39,6 +46,21 @@ def forgotten_password(body: Dict[str, str], user: User = None) -> (Message, int
         200,
     )
 
+
+def _send_recovery_code(user: User):
+    base_url = current_app.config.get("BASE_URL", "http://localhost:4200")
+    template_data = json.dumps(
+        dict(
+            name=user.firstname,
+            reset_url=f'{base_url}/resetpassword/{user.password_recovery_code}',
+        )
+    )
+    sesClient.send_templated_email(
+        Source="Sam & Sophie <hello@sherar.wedding>",
+        Destination={"ToAddresses": [user.email]},
+        Template="ResetPassword",
+        TemplateData=template_data,
+    )
 
 def login(body: Dict[str, str], user: User = None) -> (Message, int):
     """
@@ -123,11 +145,29 @@ def register_user(body: Dict[str, str], user: User = None) -> (Message, int):
 
     guest.user = new_user
     new_user.untrust_email()
+    if current_app.config.get("SEND_EMAIL"):
+        _send_verification_email(new_user)
 
     db.session.add(new_user)
     db.session.commit()
 
     return success("Account has been created. Please verify your email address"), 201
+
+
+def _send_verification_email(user: User):
+    base_url = current_app.config.get("BASE_URL", "http://localhost:4200")
+    template_data = json.dumps(
+        dict(
+            name=user.firstname,
+            verification_url=f'{base_url}/verify/{user.verification_code}',
+        )
+    )
+    sesClient.send_templated_email(
+        Source="Sam & Sophie <hello@sherar.wedding>",
+        Destination={"ToAddresses": [user.email]},
+        Template="VerifyEmail",
+        TemplateData=template_data,
+    )
 
 
 def reset_password(body: Dict[str, str], user: User = None) -> (Message, int):
@@ -146,9 +186,26 @@ def reset_password(body: Dict[str, str], user: User = None) -> (Message, int):
 
     user.password = password
     db.session.commit()
+
+    if current_app.config.get("SEND_EMAIL"):
+        _send_reset_notification(user)
     return (
         success("Password has been updated successfully. Please try and login again"),
         200,
+    )
+
+
+def _send_reset_notification(user: User):
+    template_data = json.dumps(
+        dict(
+            name=user.firstname
+        )
+    )
+    sesClient.send_templated_email(
+        Source="Sam & Sophie <hello@sherar.wedding>",
+        Destination={"ToAddresses": [user.email]},
+        Template="PasswordResetSuccessful",
+        TemplateData=template_data,
     )
 
 

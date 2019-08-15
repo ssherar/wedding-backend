@@ -13,11 +13,24 @@ class DevelopmentConfig(Config):
     DEBUG = True
     SQLALCHEMY_DATABASE_URI = "sqlite:///" + os.path.join(basedir, "wedding_dev.db")
     SQLALCHEMY_TRACK_MODIFICATIONS = False
+    SEND_EMAIL = False
 
 
 class ProductionConfig(Config):
+    SEND_EMAIL = True
     DEBUG = False
+    SQLALCHEMY_DATABASE_URI = "sqlite:///" + os.path.join(basedir, "wedding_dev.db")
+    SQLALCHEMY_TRACK_MODIFICATIONS = False
+    BASE_URL = "https://sherar.wedding"
 
 
-config_by_name = dict(dev=DevelopmentConfig, prod=ProductionConfig)
+class LocalConfig(Config):
+    SEND_EMAIL = True
+    DEBUG = True
+    SQLALCHEMY_DATABASE_URI = "sqlite:///" + os.path.join(basedir, "wedding_dev.db")
+    SQLALCHEMY_TRACK_MODIFICATIONS = False
+    BASE_URL = "http://localhost:4200"
+
+
+config_by_name = dict(dev=DevelopmentConfig, prod=ProductionConfig, local=LocalConfig)
 key = Config.SECRET_KEY

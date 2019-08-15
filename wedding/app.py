@@ -5,7 +5,7 @@ from .config import config_by_name
 
 
 def create_app(config_name):
-    api = connexion.FlaskApp(__name__, specification_dir='specs/')
+    api = connexion.FlaskApp(__name__, specification_dir="specs/")
     app = api.app
     app.config.from_object(config_by_name[config_name])
     api.add_api("api.yml")
