@@ -15,11 +15,11 @@ depends_on = None
 
 
 def upgrade():
-    op.add_column("user", sa.Column("firstname", sa.String(length=255), nullable=True))
-    op.add_column("user", sa.Column("lastname", sa.String(length=255), nullable=True))
+    op.add_column("users", sa.Column("firstname", sa.String(length=255), nullable=True))
+    op.add_column("users", sa.Column("lastname", sa.String(length=255), nullable=True))
 
 
 def downgrade():
-    op.drop_column("user", "lastname")
-    op.drop_column("user", "firstname")
+    op.drop_column("users", "lastname")
+    op.drop_column("users", "firstname")
 

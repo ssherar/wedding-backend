@@ -34,25 +34,25 @@ def upgrade():
         sa.Column("plus_one_name", sa.String(length=256), nullable=True),
         sa.Column("locked", sa.Boolean(), nullable=False),
         sa.Column("invitation_group_id", sa.Integer(), nullable=True),
-        sa.ForeignKeyConstraint(["invitation_group_id"], ["invitation_group.id"]),
+        sa.ForeignKeyConstraint(["invitation_group_id"], ["invitation_group.id"], name="fk_users_invitation_group_id_invitation_group"),
         sa.PrimaryKeyConstraint("id"),
     )
     op.create_table(
-        "user",
+        "users",
         sa.Column("id", sa.Integer(), autoincrement=True, nullable=False),
         sa.Column("email", sa.String(length=255), nullable=False),
         sa.Column("registered_on", sa.DateTime(), nullable=False),
         sa.Column("admin", sa.Boolean(), nullable=False),
         sa.Column("password_hash", sa.String(length=100), nullable=True),
         sa.Column("invitation_group_id", sa.Integer(), nullable=True),
-        sa.ForeignKeyConstraint(["invitation_group_id"], ["invitation_group.id"]),
+        sa.ForeignKeyConstraint(["invitation_group_id"], ["invitation_group.id"], name="fk_users_invitation_group_id_invitation_group"),
         sa.PrimaryKeyConstraint("id"),
         sa.UniqueConstraint("email"),
     )
 
 
 def downgrade():
-    op.drop_table("user")
+    op.drop_table("users")
     op.drop_table("invitation")
     op.drop_table("invitation_group")
 
