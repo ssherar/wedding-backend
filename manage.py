@@ -6,7 +6,7 @@ from flask_migrate import Migrate, MigrateCommand
 
 import os
 
-app = create_app(os.environ.get("WEDDING_CONFIG", "dev"))
+app = create_app(os.environ.get("WEDDING_CONFIG", "dev"), options={})
 migrate = Migrate(app, db)
 
 manager = Manager(app)

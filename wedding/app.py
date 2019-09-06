@@ -4,8 +4,8 @@ from .models import db, flask_bcrypt
 from .config import config_by_name
 
 
-def create_app(config_name):
-    api = connexion.FlaskApp(__name__, specification_dir="specs/")
+def create_app(config_name, options):
+    api = connexion.FlaskApp(__name__, specification_dir="specs/", options=options)
     app = api.app
     app.config.from_object(config_by_name[config_name])
     api.add_api("api.yml")

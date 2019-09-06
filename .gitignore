@@ -106,3 +106,4 @@ venv.bak/
 # Wedding-backend specific
 *.db
 .vscode
+pg-data
