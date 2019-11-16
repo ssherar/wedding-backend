@@ -864,6 +864,10 @@ components:
             - DAY
         requirements:
           type: string
+        arriving:
+          type: string
+        leaving:
+          type: string
         locked:
           type: boolean
         staying_in_house:

@@ -215,6 +215,8 @@ class Invitation(db.Model):
     )
     staying_in_house = db.Column(db.Boolean, nullable=True)
     requirements = db.Column(db.String(1000))
+    arriving = db.Column(db.String(32), nullable=True)
+    leaving = db.Column(db.String(32), nullable=True)
 
     locked = db.Column(db.Boolean, nullable=False, default=False)
     invitation_group_id = db.Column(db.Integer, db.ForeignKey("invitation_group.id"))
@@ -229,6 +231,8 @@ class Invitation(db.Model):
             "response": str(self.response),
             "requirements": self.requirements,
             "staying_in_house": self.staying_in_house,
+            "arriving": self.arriving,
+            "leaving": self.leaving,
             "locked": self.locked,
         }
 

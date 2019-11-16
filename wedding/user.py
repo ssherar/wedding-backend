@@ -1,4 +1,3 @@
-from flask.json import dumps
 from typing import Dict, List
 
 from .models import db, User, Invitation, Guest, ResponseType, InvitationType
@@ -31,6 +30,9 @@ def submit_invitation(body: Dict[str, str], user: User, *args) -> (Message, int)
 def _process_invitation(invitation: Invitation, invData: Dict[str, str]):
     invitation.response = ResponseType.CONFIRMED
     invitation.requirements = invData.get("requirements", None)
+    invitation.arriving = invData.get("arriving", None)
+    invitation.leaving = invData.get("leaving", None)
+    print(invitation.dump())
     if invitation.invitation_type == InvitationType.HOUSE:
         invitation.staying_in_house = invData["staying_in_house"]
     else:
@@ -43,9 +45,9 @@ def _process_guests(guests: List[Guest], guestData: List[Dict[str, str]]):
         guest.is_coming = gd["is_coming"]
         if not gd["is_coming"]:
             continue
-        
-        if guest.plus_one == True:
-            guest.name = gd['name']
+
+        if guest.plus_one is True:
+            guest.name = gd["name"]
 
         guest.first_course = gd["first_course"]
         guest.main_course = gd["main_course"]

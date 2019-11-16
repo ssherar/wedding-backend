@@ -68,6 +68,8 @@ def patch_group(group_id, body, user: User, *args):
         invitation = group.invitation
         invitation.response = inv_payload.get("response", invitation.response)
         invitation.invitation_type = inv_payload.get("type", invitation.invitation_type)
+        invitation.arriving = inv_payload.get("arriving", None)
+        invitation.leaving = inv_payload.get("leaving", None)
         invitation.requirements = inv_payload.get(
             "requirements", invitation.requirements
         )
