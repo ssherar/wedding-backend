@@ -70,6 +70,13 @@ def patch_me(body: Dict[str, str], user: User) -> (Message, int):
     return success("User profile updated successfully"), 200
 
 
+def delete_me(user: User, *args) -> (Dict[str, str]):
+    db.session.delete(user)
+    db.session.commit()
+
+    return success("Your account has sucessfully been deleted"), 200
+
+
 def find_user(q: str, orphaned: bool):
     query = User.query.filter(User.fullname.like(f"%{q}%"))
     a = query.all()

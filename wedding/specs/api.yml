@@ -499,6 +499,17 @@ paths:
       operationId: wedding.user.get_me
       tags:
         - user
+    delete:
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Message'
+      operationId: wedding.user.delete_me
+      tags:
+        - user
   /profile/search:
     get:
       responses:
