@@ -77,6 +77,20 @@ def delete_me(user: User, *args) -> (Dict[str, str]):
     return success("Your account has sucessfully been deleted"), 200
 
 
+def change_password(body: Dict[str, str], user: User, *args) -> (Message, int):
+    new_password = body.get("new_password")
+    old_password = body.get("old_password")
+    if new_password is None or old_password is None:
+        return fail("Password is empty"), 404
+
+    if not user.check_password(old_password):
+        return fail("Old password is incorrect"), 403
+
+    user.password = new_password
+    db.session.commit()
+    return success("Password changed successfully!"), 200
+
+
 def find_user(q: str, orphaned: bool):
     query = User.query.filter(User.fullname.like(f"%{q}%"))
     a = query.all()
