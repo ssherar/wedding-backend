@@ -124,7 +124,12 @@ class User(db.Model):
                     401, "Unauthorized", "Token has expired. Please log in again"
                 )
             email = payload["sub"]
-            return (cls.query.filter_by(email=email)).first()
+
+            user = cls.query.filter_by(email=email).first()
+            if user is None:
+                Token.revoke(auth_token)
+                raise ProblemException(401, "Unauthorized", "No valid user found")
+            return user
         except jwt.ExpiredSignatureError:
             raise ProblemException(
                 401, "Unauthorized", "Signature expired. Please log in again."
