@@ -807,6 +807,9 @@ components:
           type: string
           nullable: true
           readOnly: true
+        staying_in_house:
+          type: boolean
+          readOnly: true
     UserRegistration:
       type: object
       properties:
