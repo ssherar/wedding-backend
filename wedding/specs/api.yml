@@ -917,6 +917,8 @@ components:
           type: boolean
         staying_in_house:
           type: boolean
+        shared_room:
+          type: boolean
         group_name:
           type: string
           readOnly: true

@@ -74,6 +74,7 @@ def patch_group(group_id, body, user: User, *args):
             "requirements", invitation.requirements
         )
         invitation.locked = inv_payload.get("locked", invitation.locked)
+        invitation.shared_room = inv_payload.get("shared_room", invitation.shared_room)
     db.session.commit()
     return success(f"Group '{group.friendly_name}' updated"), 200
 
