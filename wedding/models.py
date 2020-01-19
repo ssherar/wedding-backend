@@ -95,7 +95,7 @@ class User(db.Model):
         try:
             now = datetime.datetime.utcnow()
             payload = {
-                "exp": now + (datetime.timedelta(days=1)),
+                "exp": now + (datetime.timedelta(days=7)),
                 "iat": now,
                 "sub": self.email,
                 "name": self.fullname,
