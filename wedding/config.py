@@ -7,6 +7,7 @@ class Config(object):
     DEBUG = False
     SECRET_KEY = os.getenv("SECRET_KEY", "change-me")
     EMAIL_EXP = 3600 * 3  # 3 days
+    SWAGGER_UI = True
 
 
 class DevelopmentConfig(Config):
@@ -22,6 +23,7 @@ class ProductionConfig(Config):
     SQLALCHEMY_DATABASE_URI = "sqlite:///" + os.path.join(basedir, "wedding_dev.db")
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     BASE_URL = "https://sherar.wedding"
+    SWAGGER_UI = False
 
 
 class LocalConfig(Config):

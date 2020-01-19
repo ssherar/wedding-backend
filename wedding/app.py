@@ -5,9 +5,11 @@ from .config import config_by_name
 
 
 def create_app(config_name):
-    api = connexion.FlaskApp(__name__, specification_dir="specs/")
+    config = config_by_name[config_name]
+    api = connexion.FlaskApp(__name__, specification_dir="specs/",
+                             options=dict(swagger_ui=config.SWAGGER_UI))
     app = api.app
-    app.config.from_object(config_by_name[config_name])
+    app.config.from_object(config)
     api.add_api("api.yml")
     db.init_app(app)
     flask_bcrypt.init_app(app)
