@@ -5,11 +5,11 @@ deps = [
     "sqlalchemy",
     "flask-sqlalchemy",
     "Flask-Migrate",
-    'flask-script',
-    'flask-bcrypt',
+    "flask-script",
+    "flask-bcrypt",
     "connexion",
     "pyjwt",
-    "boto3"
+    "boto3",
 ]
 
 setup(

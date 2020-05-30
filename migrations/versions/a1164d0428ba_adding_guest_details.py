@@ -54,4 +54,3 @@ def downgrade():
         batch_op.drop_column("first_course")
         batch_op.drop_column("desert_course")
         batch_op.drop_column("is_coming")
-
