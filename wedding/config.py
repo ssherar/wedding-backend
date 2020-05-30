@@ -12,7 +12,7 @@ class Config(object):
 
 class DevelopmentConfig(Config):
     DEBUG = True
-    SQLALCHEMY_DATABASE_URI = "sqlite:///" + os.path.join(basedir, "wedding_dev.db")
+    SQLALCHEMY_DATABASE_URI = "postgresql://postgres@localhost/wedding"
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     SEND_EMAIL = False
 

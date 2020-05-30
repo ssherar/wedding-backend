@@ -1,5 +1,7 @@
 import connexion
 
+from flask_migrate import Migrate
+
 from .models import db, flask_bcrypt
 from .config import config_by_name
 
@@ -13,6 +15,7 @@ def create_app(config_name):
     api.add_api("api.yml")
     db.init_app(app)
     flask_bcrypt.init_app(app)
+    Migrate(app, db)
 
     @app.after_request
     def after_request(response):
