@@ -62,6 +62,8 @@ def patch_group(group_id, body, user: User, *args):
         return fail(f"Group '{group_id}' does not exist"), 404
     group.friendly_name = body.get("name", group.friendly_name)
     group.group_code = body.get("code", group.group_code)
+    group.room_cost = body.get("room_cost", group.room_cost)
+    group.paid = body.get("paid", group.paid)
 
     inv_payload = body.get("invitation", None)
     if inv_payload is not None:

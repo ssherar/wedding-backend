@@ -202,11 +202,11 @@ class User(db.Model):
             group_name = self.associated_guest.invitation_group.friendly_name
             if (
                 self.associated_guest.invitation_group.invitation.invitation_type
-                == InvitationType.HOUSE
+                == InvitationType.HOUSE  # noqa
             ):
                 if (
                     self.associated_guest.invitation_group.invitation.staying_in_house
-                    != False
+                    != False  # noqa
                 ):
                     staying_in_house = True
         else:
@@ -259,6 +259,8 @@ class InvitationGroup(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     friendly_name = db.Column(db.String(255), nullable=False, unique=True)
     group_code = db.Column(db.String(16), nullable=False)
+    room_cost = db.Column(db.Numeric(7, 2), default=0)
+    paid = db.Column(db.Boolean, default=False)
     invitation = db.relationship(
         "Invitation", backref="invitation_group", uselist=False, cascade="all,delete"
     )
@@ -274,6 +276,8 @@ class InvitationGroup(db.Model):
             "code": self.group_code,
             "name": self.friendly_name,
             "invitation": self.invitation.dump(),
+            "room_cost": self.room_cost,
+            "paid": self.paid,
             "guests": [g.dump() for g in self.guests],
         }
         return rv
