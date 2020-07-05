@@ -22,4 +22,3 @@ def upgrade():
 def downgrade():
     op.drop_column("user", "lastname")
     op.drop_column("user", "firstname")
-

@@ -21,11 +21,7 @@ def upgrade():
     op.add_column(
         "guests",
         sa.Column(
-            "plus_one",
-            sa.Boolean(),
-            nullable=False,
-            default=False,
-            server_default='0',
+            "plus_one", sa.Boolean(), nullable=False, default=False, server_default="0",
         ),
     )
     with op.batch_alter_table("invitation", schema=None) as batch_op:

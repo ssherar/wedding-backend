@@ -166,4 +166,3 @@ def remove_relation_from_guest(group_id, body, user: User, *args):
         ),
         200,
     )
-

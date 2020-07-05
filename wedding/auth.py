@@ -52,7 +52,7 @@ def _send_recovery_code(user: User):
     template_data = json.dumps(
         dict(
             name=user.firstname,
-            reset_url=f'{base_url}/resetpassword/{user.password_recovery_code}',
+            reset_url=f"{base_url}/resetpassword/{user.password_recovery_code}",
         )
     )
     sesClient.send_templated_email(
@@ -61,6 +61,7 @@ def _send_recovery_code(user: User):
         Template="ResetPassword",
         TemplateData=template_data,
     )
+
 
 def login(body: Dict[str, str], user: User = None) -> (Message, int):
     """
@@ -159,7 +160,7 @@ def _send_verification_email(user: User):
     template_data = json.dumps(
         dict(
             name=user.firstname,
-            verification_url=f'{base_url}/verify/{user.verification_code}',
+            verification_url=f"{base_url}/verify/{user.verification_code}",
         )
     )
     sesClient.send_templated_email(
@@ -196,11 +197,7 @@ def reset_password(body: Dict[str, str], user: User = None) -> (Message, int):
 
 
 def _send_reset_notification(user: User):
-    template_data = json.dumps(
-        dict(
-            name=user.firstname
-        )
-    )
+    template_data = json.dumps(dict(name=user.firstname))
     sesClient.send_templated_email(
         Source="Sam & Sophie <hello@sherar.wedding>",
         Destination={"ToAddresses": [user.email]},

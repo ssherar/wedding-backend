@@ -14,7 +14,10 @@ connexion = "^2.7.0"
 pyjwt = "^1.7.1"
 boto3 = "^1.13.7"
 flask-migrate = "^2.5.3"
+psycopg2-binary = "^2.8.5"
+alembic = "^1.4.2"
 
 [tool.poetry.dev-dependencies]
 pytest = "^5.2"
 connexion = {extras = ["swagger-ui"], version = "^2.7.0"}
+black = "^19.10b0"
