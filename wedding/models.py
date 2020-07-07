@@ -229,10 +229,14 @@ class Invitation(db.Model):
     response = db.Column(
         db.Enum(ResponseType), nullable=False, default=ResponseType.NO_RESPONSE
     )
-    staying_in_house = db.Column(db.Boolean, nullable=True)
     requirements = db.Column(db.String(1000))
     arriving = db.Column(db.String(32), nullable=True)
     leaving = db.Column(db.String(32), nullable=True)
+    
+    staying_in_house = db.Column(db.Boolean, nullable=True)
+    room_cost = db.Column(db.Numeric(7, 2), default=0)
+    paid = db.Column(db.Boolean, nullable=True)
+    room_number = db.Column(db.Integer, nullable=True)
     shared_room = db.Column(db.Boolean, nullable=False, default=False)
 
     locked = db.Column(db.Boolean, nullable=False, default=False)
@@ -252,6 +256,9 @@ class Invitation(db.Model):
             "leaving": self.leaving,
             "locked": self.locked,
             "shared_room": self.shared_room,
+            "room_cost": self.room_cost,
+            "paid": self.paid,
+            "room_number": self.room_number
         }
 
 
@@ -259,8 +266,6 @@ class InvitationGroup(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     friendly_name = db.Column(db.String(255), nullable=False, unique=True)
     group_code = db.Column(db.String(16), nullable=False)
-    room_cost = db.Column(db.Numeric(7, 2), default=0)
-    paid = db.Column(db.Boolean, default=False)
     invitation = db.relationship(
         "Invitation", backref="invitation_group", uselist=False, cascade="all,delete"
     )
@@ -276,8 +281,6 @@ class InvitationGroup(db.Model):
             "code": self.group_code,
             "name": self.friendly_name,
             "invitation": self.invitation.dump(),
-            "room_cost": self.room_cost,
-            "paid": self.paid,
             "guests": [g.dump() for g in self.guests],
         }
         return rv
