@@ -202,11 +202,11 @@ class User(db.Model):
             group_name = self.associated_guest.invitation_group.friendly_name
             if (
                 self.associated_guest.invitation_group.invitation.invitation_type
-                == InvitationType.HOUSE
+                == InvitationType.HOUSE  # noqa
             ):
                 if (
                     self.associated_guest.invitation_group.invitation.staying_in_house
-                    != False
+                    != False  # noqa
                 ):
                     staying_in_house = True
         else:
@@ -229,10 +229,14 @@ class Invitation(db.Model):
     response = db.Column(
         db.Enum(ResponseType), nullable=False, default=ResponseType.NO_RESPONSE
     )
-    staying_in_house = db.Column(db.Boolean, nullable=True)
     requirements = db.Column(db.String(1000))
     arriving = db.Column(db.String(32), nullable=True)
     leaving = db.Column(db.String(32), nullable=True)
+    
+    staying_in_house = db.Column(db.Boolean, nullable=True)
+    room_cost = db.Column(db.Numeric(7, 2), default=0)
+    paid = db.Column(db.Boolean, nullable=True)
+    room_number = db.Column(db.Integer, nullable=True)
     shared_room = db.Column(db.Boolean, nullable=False, default=False)
 
     locked = db.Column(db.Boolean, nullable=False, default=False)
@@ -252,6 +256,9 @@ class Invitation(db.Model):
             "leaving": self.leaving,
             "locked": self.locked,
             "shared_room": self.shared_room,
+            "room_cost": self.room_cost,
+            "paid": self.paid,
+            "room_number": self.room_number
         }
 
 

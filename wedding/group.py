@@ -1,6 +1,6 @@
 from typing import Dict, List
 
-from .models import db, InvitationGroup, User, Guest
+from .models import db, InvitationGroup, User, Guest, InvitationType
 from .utils import admin_required, fail, success
 
 
@@ -74,7 +74,19 @@ def patch_group(group_id, body, user: User, *args):
             "requirements", invitation.requirements
         )
         invitation.locked = inv_payload.get("locked", invitation.locked)
-        invitation.shared_room = inv_payload.get("shared_room", invitation.shared_room)
+
+        if invitation.invitation_type == InvitationType.HOUSE:
+            invitation.room_cost = inv_payload.get("room_cost", invitation.room_cost)
+            invitation.paid = inv_payload.get("paid", invitation.paid)
+            invitation.room_number = inv_payload.get("room_number", invitation.room_number)
+            invitation.shared_room = inv_payload.get("shared_room", invitation.shared_room)
+            invitation.staying_in_house = inv_payload.get("staying_in_house", invitation.staying_in_house)
+        else:
+            invitation.room_cost = None
+            invitation.paid = None
+            invitation.room_number = None
+            invitation.shared_room = False
+            invitation.staying_in_house = None
     db.session.commit()
     return success(f"Group '{group.friendly_name}' updated"), 200
 
