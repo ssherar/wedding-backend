@@ -27,4 +27,4 @@ jobs:
         host: api.sherar.wedding
         username: ec2-user
         key: ${{ secrets.SSH_PRIVATE_KEY }}
-        script: cd wedding-backend; git checkout master; git pull
+        script: cd wedding-backend; git stash; git checkout master; git pull; git stash pop
