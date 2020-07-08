@@ -16,6 +16,7 @@ boto3 = "^1.13.7"
 flask-migrate = "^2.5.3"
 psycopg2-binary = "^2.8.5"
 alembic = "^1.4.2"
+python-dotenv = "^0.14.0"
 
 [tool.poetry.dev-dependencies]
 pytest = "^5.2"
