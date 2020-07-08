@@ -55,4 +55,3 @@ def downgrade():
     op.drop_table("user")
     op.drop_table("invitation")
     op.drop_table("invitation_group")
-

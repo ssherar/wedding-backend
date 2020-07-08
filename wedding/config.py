@@ -15,6 +15,7 @@ class DevelopmentConfig(Config):
     SQLALCHEMY_DATABASE_URI = "sqlite:///" + os.path.join(basedir, "wedding_dev.db")
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     SEND_EMAIL = False
+    BASE_URL = "http://localhost:4200"
 
 
 class ProductionConfig(Config):

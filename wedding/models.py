@@ -200,8 +200,14 @@ class User(db.Model):
         staying_in_house = False
         if self.associated_guest is not None:
             group_name = self.associated_guest.invitation_group.friendly_name
-            if self.associated_guest.invitation_group.invitation.invitation_type == InvitationType.HOUSE:
-                if self.associated_guest.invitation_group.invitation.staying_in_house != False:
+            if (
+                self.associated_guest.invitation_group.invitation.invitation_type
+                == InvitationType.HOUSE
+            ):
+                if (
+                    self.associated_guest.invitation_group.invitation.staying_in_house
+                    != False
+                ):
                     staying_in_house = True
         else:
             group_name = None
@@ -213,7 +219,7 @@ class User(db.Model):
             "fullname": self.fullname,
             "admin": self.admin,
             "group_name": group_name,
-            "staying_in_house": staying_in_house
+            "staying_in_house": staying_in_house,
         }
 
 
